@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <script> sessionStorage.setItem("ProductName","WirelessDS18B20"); document.title='J6B '+sessionStorage.getItem("ProductName");</script>
+</head>
+<body style="background-color: #ffcc99; Color: #000000;font-family: Arial;">
+    <h1 style="display:inline">J6B <script>document.write(sessionStorage.getItem("ProductName"))</script></h1><span id="l"><h2 style="display:inline"><b> Loading...</b></h2></span><br>
+    <span id='i'></span><br>
+    <h2 style="display:inline">Configuration WebPage</h2><span id="l1"><h2 style="display:inline"><b> Loading...</b></h2></span><br><br>
+    <form id='f' style='display:none'>
+        ssid: <input type='text' id='s' name='s' maxlength='32' list="wnl">
+        <select id="wnl"><option>Loading...</option></select><br>
+        password: <input type='password' id='p' name='p' maxlength='64'><br>
+        hostname: <input type='text' id='h' name='h' maxlength='24'><br>
+        number Of OW Bus: <input type='number' id='n' name='n' min='1'><span id='e'></span><br>
+        <span id="buses"></span>
+        <input type='submit' value='Submit Config'>
+    </form>
+    <span id='r'></span>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+    <script>
+        if (!window.jQuery){
+            document.write('<script type="text/javascript" src="/jquery-3.2.1.min.js"><\/script>');
+            document.getElementById('l').innerHTML='<h4 style="display:inline"> (JQuery loaded locally)</h4>';
+        }
+        else $("#l").fadeOut();
+    </script>
+    <script>
+        if (!window.jQuery) {
+            document.getElementById('l').innerHTML='';
+            document.getElementById('l1').innerHTML='<h2 style="display:inline"><b> Failed</b></h2>';
+            document.getElementById('i').innerHTML='<h3 style="color:red"> JQuery is required. You need to have Internet access or to upload JQuery file using <a href="/fw"><b>fw</b></a> page.</h3>';
+        }
+    </script>
+    <script>
+
+        function onNChange(){
+            for(i=0;i<$("#n").val();i++){
+                $("#b"+i+"i").prop("disabled",false);
+                $("#b"+i+"o").prop("disabled",false);
+                $("#b"+i).show();
+            }
+            for(i=$("#n").val();i<$("#n").prop("max");i++){
+                $("#b"+i).hide();
+                $("#b"+i+"i").prop("disabled",true);
+                $("#b"+i+"o").prop("disabled",true);
+            }
+        };
+
+        $("#n").change(onNChange);
+
+        $("#f").submit(function(event){
+            $("#r").html("Saving Configuration...");
+            $.post("/sc",$("#f").serialize(),function(){ 
+                $("#f").hide();
+                var reload10sec=document.createElement('script');
+                reload10sec.text='var count=9;var cdi=setInterval(function(){$("#cd").text(count);if(!count){clearInterval(cdi);location.reload();}count--;},1000);';
+                $('#r').html('<h3><b>Configuration saved <span style="color: green;">successfully</span>. System is restarting now.</b></h3>This page will be reloaded in <span id="cd">10</span>sec.').append(reload10sec);
+             });
+            event.preventDefault();
+        });
+
+        $(document).ready(function(){
+            $.getJSON("/gc", function(GC){
+                for(i=0;i<GC.nm;i++) $("#buses").append("<span id='b"+i+"'>bus"+i+": PinIn <input type='number' id='b"+i+"i' name='b"+i+"i' min='0' max='255'> PinOut <input type='number' id='b"+i+"o' name='b"+i+"o' min='0' max='255'><br></span>");
+
+                $("#s").val(GC.s);
+                $("#p").val(GC.p);
+                $("#h").val(GC.h);
+                $("#n").val(GC.n);
+                $("#n").prop("max",GC.nm);
+                $.each(GC,function(k,v){
+                    if(k.substring(0,1)=="b") $('#'+k).val(v);
+                });
+
+                if(GC.e==1){
+                    $("#n").prop("disabled",true);
+                    $("#b0i").prop("disabled",true);
+                    $("#b0o").prop("disabled",true);
+                    $("#e").append("<b> ESP-01 have only this bus</b>");
+                }
+                else onNChange();
+
+                $("#f").show();
+                
+                $.getJSON("/wnl", function(WNL){
+                    $("#wnl").empty();
+                    if(WNL.wnl.length==0) $("#wnl").append('<option>No Network Found</option>');
+                    else{
+                        $("#wnl").append('<option>Choose Your Network</option>');
+                        $.each(WNL.wnl,function(k,v){
+                            if($("#s").val()==v) $("#wnl").append('<option value="'+v+'" selected>'+v+'</option>');
+                            else $("#wnl").append('<option value="'+v+'">'+v+'</option>');
+                            });
+                        $("#wnl").change(function(){$("#s").val($("#wnl").val())});
+                    }
+                });
+
+                $("#l1").fadeOut();
+            })
+            .fail(function(){
+                $("#l1").html('<h2 style="display:inline"><b> Failed</b></h2>');
+            });
+            
+        });
+    </script>
+</body>
+</html>

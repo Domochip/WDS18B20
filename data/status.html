@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <script> sessionStorage.setItem("ProductName","WirelessDS18B20"); document.title='J6B '+sessionStorage.getItem("ProductName");</script>
+</head>
+<body style="background-color: #ffcc99; Color: #000000;font-family: Arial;">
+    <h1 style="display:inline">J6B <script>document.write(sessionStorage.getItem("ProductName"))</script></h1><span id="l"><h2 style="display:inline"><b> Loading...</b></h2></span><br>
+    <span id='i'></span><br>
+    <h2 style="display:inline">System Status</h2><span id="l1"><h2 style="display:inline"><b> Loading...</b></h2></span><br>
+    Build version : <span id="b"></span><br>
+    UpTime : <span id="u"></span><br>
+    AP : <span id="ap"></span> (<span id="ai"></span>)<br>
+    Station : <span id="sta"></span> (<span id="stai"></span>)<br>
+    FreeHeap : <span id="f"></span><br>
+    <br>
+    <h2 style="display:inline">OneWire Status</h2><span id="l2"><h2 style="display:inline"><b> Loading...</b></h2></span><br>
+    NA
+
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+    <script>
+        if (!window.jQuery){
+            document.write('<script type="text/javascript" src="/jquery-3.2.1.min.js"><\/script>');
+            document.getElementById('l').innerHTML='<h4 style="display:inline"> (JQuery loaded locally)</h4>';
+        }
+        else $("#l").fadeOut();
+    </script>
+    <script>
+        if (!window.jQuery) {
+            document.getElementById('l').innerHTML='';
+            document.getElementById('l1').innerHTML='<h2 style="display:inline"><b> Failed</b></h2>';
+            document.getElementById('l2').innerHTML='<h2 style="display:inline"><b> Failed</b></h2>';
+            document.getElementById('i').innerHTML='<h3 style="color:red"> JQuery is required. You need to have Internet access or to upload JQuery file using <a href="/fw"><b>fw</b></a> page.</h3>';
+        }
+    </script>
+    <script>
+        $(document).ready(function(){
+            $.getJSON("/gs0", function(GS0){
+
+                $.each(GS0,function(k,v){
+                    $('#'+k).html(v);
+                })
+                $("#l1").fadeOut();
+            })
+            .fail(function(){
+                $("#l1").html('<h2 style="display:inline"><b> Failed</b></h2>');
+            });
+
+            $("#l2").fadeOut();
+        });
+    </script>
+
+</body>
+</html>
