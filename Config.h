@@ -8,7 +8,7 @@
 #include "data\config.html.gz.h"
 
 #define DEFAULT_AP_SSID "WirelessDS18B20"
-#define DEFAULT_AP_PSK "PasswordDS18B20"
+#define DEFAULT_AP_PSK "PasswordDS"
 
 const char predefPassword[] PROGMEM = "ewcXoCt4HHjZUvY0";
 

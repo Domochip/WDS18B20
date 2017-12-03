@@ -48,7 +48,7 @@
                     FreeHeap : <span id="f"></span><br>
 
                     <h2 class="content-subhead">OneWire <span id="l2"><h6 style="display:inline"><b> Loading...</b></h6></span></h2>
-                    NA
+                    <div id="AllSensors"></div>
 
                 </div>
             </div>
@@ -81,6 +81,26 @@
                 })
                 .fail(function(){
                     $("#l1").html('<h4 style="display:inline;color:red;"><b> Failed</b></h4>');
+                });
+
+
+                $.getJSON("/gc", function(GC){
+
+                    var buses = [];
+                    for(i=0;i<GC.n;i++) buses.push(i);
+
+                    $(buses).each(function(bus){
+                        $("#AllSensors").append("<h3>Bus "+bus+"</h3></div>");
+                        $("#AllSensors").append("<div id='bus"+bus+"' class='pure-controls'></div>");
+                        
+                        $.getJSON("/getL?bus"+bus,function(SList){
+                            $(SList.TemperatureSensorList).each(function(index,RomCode){
+                                $.getJSON("/getT?bus"+bus+"="+RomCode, function(temp){
+                                    $("#bus"+bus).append(RomCode+" : <a class='pure-button pure-button-primary' href='/getT?bus"+bus+"="+RomCode+"'>"+temp.Temperature+"°C</a><br>");
+                                });
+                            });
+                        });
+                    });
                 });
 
                 $("#l2").fadeOut();

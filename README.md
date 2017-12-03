@@ -47,7 +47,7 @@ This one compress and then convert into code (PROGMEM variables) the webpages fi
 During First Boot, the ESP boot in Access Point Mode to allow you configuration
 
 - Network SSID : `WirelessDS18B20`
-- Password : `PasswordDS18B20`
+- Password : `PasswordDS`
 - ESP IP : `192.168.4.1`
 
 Connect to this network and then configure it.

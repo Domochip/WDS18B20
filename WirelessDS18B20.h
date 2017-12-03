@@ -9,13 +9,13 @@
 //http://IP/config
 //http://IP/fw
 //DS18B20 Request Web Pages
-//http://IP/getL?bus=0
+//http://IP/getL?bus0
 //http://IP/getT?bus0=0A1B2C3D4E5F6071
 
 
-#define VERSION_NUMBER "3.1.2"
+#define VERSION_NUMBER "3.1.3"
 
-#define MODEL "WDS"
+#define MODEL "WDS18B20"
 
 //Enable developper mode (fwdev webpage and SPIFFS is used)
 #define DEVELOPPER_MODE 0
@@ -27,7 +27,7 @@
 //Pin 0 = 1Wire bus output
 //Pin 2 = config Mode button
 //For other models, Pin Numbers and Buses are defined through Configuration Web Page
-#define ESP01_PLATFORM 0
+#define ESP01_PLATFORM 1
 
 //Choose Serial Speed
 #define SERIAL_SPEED 115200
