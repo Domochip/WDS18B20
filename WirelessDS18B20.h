@@ -13,7 +13,7 @@
 //http://IP/getT?bus0=0A1B2C3D4E5F6071
 
 
-#define VERSION_NUMBER "3.1.1"
+#define VERSION_NUMBER "3.1.2"
 
 #define MODEL "WDS"
 
@@ -27,7 +27,7 @@
 //Pin 0 = 1Wire bus output
 //Pin 2 = config Mode button
 //For other models, Pin Numbers and Buses are defined through Configuration Web Page
-#define ESP01_PLATFORM 1
+#define ESP01_PLATFORM 0
 
 //Choose Serial Speed
 #define SERIAL_SPEED 115200

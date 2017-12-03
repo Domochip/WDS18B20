@@ -139,14 +139,14 @@
 
             function onNChange(){
                 for(i=0;i<$("#n").val();i++){
-                    $("#b"+i+"i").prop("disabled",false);
-                    $("#b"+i+"o").prop("disabled",false);
+                    $("#b"+i+"i").prop("disabled",false).prop("required",true);
+                    $("#b"+i+"o").prop("disabled",false).prop("required",true);
                     $("#b"+i).show();
                 }
                 for(i=$("#n").val();i<$("#n").prop("max");i++){
                     $("#b"+i).hide();
-                    $("#b"+i+"i").prop("disabled",true);
-                    $("#b"+i+"o").prop("disabled",true);
+                    $("#b"+i+"i").prop("disabled",true).prop("required",false);
+                    $("#b"+i+"o").prop("disabled",true).prop("required",false);
                 }
             };
 
@@ -167,6 +167,8 @@
                     if($("#staticip").prop("checked") && $("#ip").val()!="0.0.0.0") reload10sec.text='var count=9;var cdi=setInterval(function(){$("#cd").text(count);if(!count){clearInterval(cdi);location.assign("http://' + $("#ip").val() + '/config");}count--;},1000);';
                     else reload10sec.text='var count=9;var cdi=setInterval(function(){$("#cd").text(count);if(!count){clearInterval(cdi);location.reload();}count--;},1000);';
                     $('#r').html('<h3><b>Configuration saved <span style="color: green;">successfully</span>. System is restarting now.</b></h3>This page will be reloaded in <span id="cd">10</span>sec.').append(reload10sec);
+                }).fail(function(){
+                    $('#r').html('<h3><b>Configuration <span style="color: red;">error</span>.</b></h3>');
                 });
                 event.preventDefault();
             });
