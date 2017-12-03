@@ -19,6 +19,11 @@ class Config {
     char ssid[32 + 1] = {0};
     char password[64 + 1] = {0};
     char hostname[24 + 1] = {0};
+    uint32_t ip = 0;
+    uint32_t gw = 0;
+    uint32_t mask = 0;
+    uint32_t dns1 = 0;
+    uint32_t dns2 = 0;
 
     byte numberOfBuses = 0;
     uint8_t owBusesPins[MAX_NUMBER_OF_BUSES][2];
@@ -27,6 +32,12 @@ class Config {
       ssid[0] = 0;
       password[0] = 0;
       hostname[0] = 0;
+      ip = 0;
+      gw = 0;
+      mask = 0;
+      dns1 = 0;
+      dns2 = 0;
+
       numberOfBuses = 0;
       memset(owBusesPins, 0, MAX_NUMBER_OF_BUSES * 2);
     }

@@ -50,7 +50,7 @@ Compress-7Zip -Path $path -Filter $file -ArchiveFileName ($path+"\"+$file+".gz")
 BinaryToCppHeader($path+"\"+$file+".gz")
 Remove-Item ($path+"\"+$file+".gz")
 
-$file="jquery-3.1.1.min.js"
+$file="jquery-3.2.1.min.js"
 Compress-7Zip -Path $path -Filter $file -ArchiveFileName ($path+"\"+$file+".gz") -CompressionLevel Ultra
 BinaryToCppHeader($path+"\"+$file+".gz")
 Remove-Item ($path+"\"+$file+".gz")
@@ -65,7 +65,22 @@ Compress-7Zip -Path $path -Filter $file -ArchiveFileName ($path+"\"+$file+".gz")
 BinaryToCppHeader($path+"\"+$file+".gz")
 Remove-Item ($path+"\"+$file+".gz")
 
-$file="test.html"
+$file="discover.html"
+Compress-7Zip -Path $path -Filter $file -ArchiveFileName ($path+"\"+$file+".gz") -CompressionLevel Ultra
+BinaryToCppHeader($path+"\"+$file+".gz")
+Remove-Item ($path+"\"+$file+".gz")
+
+$file="pure-min.css"
+Compress-7Zip -Path $path -Filter $file -ArchiveFileName ($path+"\"+$file+".gz") -CompressionLevel Ultra
+BinaryToCppHeader($path+"\"+$file+".gz")
+Remove-Item ($path+"\"+$file+".gz")
+
+$file="side-menu.css"
+Compress-7Zip -Path $path -Filter $file -ArchiveFileName ($path+"\"+$file+".gz") -CompressionLevel Ultra
+BinaryToCppHeader($path+"\"+$file+".gz")
+Remove-Item ($path+"\"+$file+".gz")
+
+$file="side-menu.js"
 Compress-7Zip -Path $path -Filter $file -ArchiveFileName ($path+"\"+$file+".gz") -CompressionLevel Ultra
 BinaryToCppHeader($path+"\"+$file+".gz")
 Remove-Item ($path+"\"+$file+".gz")

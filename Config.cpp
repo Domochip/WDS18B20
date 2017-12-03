@@ -125,15 +125,27 @@ void Config::InitWebServer(AsyncWebServer &server, bool &shouldReboot) {
   });
 
   server.on("/wnl", HTTP_GET, [this](AsyncWebServerRequest * request) {
-    WiFi.scanNetworksAsync([request](int n) {
-      String networksJSON(F("{\"wnl\":["));
-      for (int i = 0; i < n; i++) {
+
+    int8_t n = WiFi.scanComplete();
+    if (n == -2) {
+      request->send(200, F("text/json"), F("{\"r\":-2,\"wnl\":[]}"));
+      WiFi.scanNetworks(true);
+    }
+    else if (n == -1) {
+      request->send(200, F("text/json"), F("{\"r\":-1,\"wnl\":[]}"));
+    }
+    else {
+      String networksJSON(F("{\"r\":"));
+      networksJSON = networksJSON + n + F(",\"wnl\":[");
+      for (byte i = 0; i < n; i++) {
         networksJSON = networksJSON + '"' + WiFi.SSID(i) + '"';
         if (i != (n - 1)) networksJSON += ',';
       }
       networksJSON += F("]}");
       request->send(200, F("text/json"), networksJSON);
-    });
+      WiFi.scanDelete();
+      if (WiFi.scanComplete() == -2) WiFi.scanNetworks(true);
+    }
   });
 }
 
@@ -144,6 +156,11 @@ String Config::GetJSON() {
   String gc = F("{\"s\":\"");
   //there is a predefined special password (mean to keep already saved one)
   gc = gc + ssid + F("\",\"p\":\"") + (__FlashStringHelper*)predefPassword + F("\",\"h\":\"") + hostname + '"';
+  if (ip) gc = gc + F(",\"ip\":\"") + IPAddress(ip).toString() + '"';
+  gc = gc + F(",\"gw\":\"") + IPAddress(gw).toString() + '"';
+  gc = gc + F(",\"mask\":\"") + IPAddress(mask).toString() + '"';
+  if (dns1) gc = gc + F(",\"dns1\":\"") + IPAddress(dns1).toString() + '"';
+  if (dns2) gc = gc + F(",\"dns2\":\"") + IPAddress(dns2).toString() + '"';
 
 #if !ESP01_PLATFORM
   gc = gc + F(",\"n\":") + numberOfBuses + F(",\"nm\":") + MAX_NUMBER_OF_BUSES;
@@ -174,6 +191,13 @@ bool Config::SetFromParameters(AsyncWebServerRequest* request) {
   if (request->hasParam(F("p"), true) && request->getParam(F("p"), true)->value().length() < sizeof(tempConfig.password)) strcpy(tempConfig.password, request->getParam(F("p"), true)->value().c_str());
   if (request->hasParam(F("h"), true) && request->getParam(F("h"), true)->value().length() < sizeof(tempConfig.hostname)) strcpy(tempConfig.hostname, request->getParam(F("h"), true)->value().c_str());
 
+  IPAddress ipParser;
+  if (request->hasParam(F("ip"), true) && ipParser.fromString(request->getParam(F("ip"), true)->value())) tempConfig.ip = static_cast<uint32_t>(ipParser);
+  if (request->hasParam(F("gw"), true) && ipParser.fromString(request->getParam(F("gw"), true)->value())) tempConfig.gw = static_cast<uint32_t>(ipParser);
+  if (request->hasParam(F("mask"), true) && ipParser.fromString(request->getParam(F("mask"), true)->value())) tempConfig.mask = static_cast<uint32_t>(ipParser);
+  if (request->hasParam(F("dns1"), true) && ipParser.fromString(request->getParam(F("dns1"), true)->value())) tempConfig.dns1 = static_cast<uint32_t>(ipParser);
+  if (request->hasParam(F("dns2"), true) && ipParser.fromString(request->getParam(F("dns2"), true)->value())) tempConfig.dns2 = static_cast<uint32_t>(ipParser);
+
 
 #if !ESP01_PLATFORM
   char tempNumberOfBusesA[2]; //only one char
@@ -188,11 +212,11 @@ bool Config::SetFromParameters(AsyncWebServerRequest* request) {
     return false;
   }
   char busPinName[4] = {'b', '0', 'i', 0};
-  for (int i = 0; i < tempConfig.numberOfBuses; i++) {
+  for (byte i = 0; i < tempConfig.numberOfBuses; i++) {
     char busPinA[4] = {0};
     busPinName[1] = '0' + i;
     busPinName[2] = 'i';
-    if (!!request->hasParam(busPinName, true)) {
+    if (!request->hasParam(busPinName, true)) {
       request->send(400, F("text/html"), F("A PinIn value is missing"));
       return false;
     }
@@ -204,7 +228,7 @@ bool Config::SetFromParameters(AsyncWebServerRequest* request) {
 
     busPinA[0] = 0;
     busPinName[2] = 'o';
-    if (!!request->hasParam(busPinName, true)) {
+    if (!request->hasParam(busPinName, true)) {
       request->send(400, F("text/html"), F("A PinOut value is missing"));
       return false;
     }

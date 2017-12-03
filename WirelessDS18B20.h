@@ -2,18 +2,20 @@
 #define WirelessDS18B20_h
 
 
-//J6B Informations
+//DomoChip Informations
 //------------Compile for 1M 64K SPIFFS------------
 //Configuration Web Pages
-//http://IP/fw
+//http://IP/
 //http://IP/config
-//http://IP/status
+//http://IP/fw
 //DS18B20 Request Web Pages
-//http://IP/getList?bus=0
-//http://IP/getTemp?bus=0&ROMCode=0A1B2C3D4E5F6071
+//http://IP/getL?bus=0
+//http://IP/getT?bus0=0A1B2C3D4E5F6071
 
 
-#define VERSION_NUMBER "3.0"
+#define VERSION_NUMBER "3.1.1"
+
+#define MODEL "WDS"
 
 //Enable developper mode (fwdev webpage and SPIFFS is used)
 #define DEVELOPPER_MODE 0

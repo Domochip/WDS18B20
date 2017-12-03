@@ -1,5 +1,13 @@
 #include "WifiMan.h"
 
+bool WifiMan::ConfigStaticIP(uint32_t ip, uint32_t gw, uint32_t mask, uint32_t dns1, uint32_t dns2) {
+  _ip = ip;
+  _gw = gw;
+  _mask = mask;
+  _dns1 = dns1;
+  _dns2 = dns2;
+}
+
 bool WifiMan::Init(char* ssid, char* password, char* hostname, char* apSSID, char* apPassword, uint16_t retryPeriod) {
 
   bool result = false;
@@ -37,13 +45,15 @@ bool WifiMan::Init(char* ssid, char* password, char* hostname, char* apSSID, cha
   //if STA is requested
   if (ssid[0]) {
 
+    //Set hostname
+    WiFi.hostname(hostname);
+
     //if not connected or config changed then reconnect
     if (!WiFi.isConnected() || WiFi.SSID() != ssid || WiFi.psk() != password) {
       WiFi.disconnect();
       WiFi.begin(ssid, password);
     }
-    //Set hostname
-    WiFi.hostname(hostname);
+    WiFi.config(_ip, _gw, _mask, _dns1, _dns2);
 
     //Wait 20sec for connection
     for (int i = 0; i < 200 && !WiFi.isConnected(); i++) {
@@ -55,9 +65,6 @@ bool WifiMan::Init(char* ssid, char* password, char* hostname, char* apSSID, cha
       WiFi.enableAP(false);
       result = true;
       WiFi.persistent(false);
-    }
-    else {
-      Serial.print(F("Not Yet Connected "));
     }
 
     //Configure handlers
@@ -94,6 +101,7 @@ void WifiMan::Run() {
     Serial.print(F("Try WiFiReco"));
     //WiFi.begin(config.ssid, config.password); //ssid and password still stored because no WiFi.disconnect called
     WiFi.begin();
+    WiFi.config(_ip, _gw, _mask, _dns1, _dns2);
 
     //Wait 10sec for connection
     for (int i = 0; i < 100 && !WiFi.isConnected(); i++) {
@@ -112,3 +120,4 @@ void WifiMan::Run() {
   }
 
 };
+

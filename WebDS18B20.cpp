@@ -216,18 +216,34 @@ String WebDS18B20Buses::GetStatus() {
 //------------------------------------------
 //Init function to store number of Buses and pins associated
 void WebDS18B20Buses::Init(byte nbOfBuses, uint8_t owBusesPins[][2]) {
+
+
   _nbOfBuses = nbOfBuses;
   _owBusesPins = owBusesPins;
   _initialized = (nbOfBuses > 0);
 
+
+#if ESP01_PLATFORM
+  Serial.flush();
+  delay(5);
+  Serial.end();
+#endif
+
   for (byte i = 0; i < _nbOfBuses; i++) {
     DS18B20Bus(_owBusesPins[i][0], _owBusesPins[i][1]).SetupTempSensors();
   }
+
+#if ESP01_PLATFORM
+  Serial.begin(SERIAL_SPEED);
+#endif
 }
 //------------------------------------------
 void WebDS18B20Buses::InitWebServer(AsyncWebServer &server) {
 
-  server.on("/getList", HTTP_GET, [this](AsyncWebServerRequest * request) {
+  server.on("/getL", HTTP_GET, [this](AsyncWebServerRequest * request) {
+
+    bool requestPassed = false;
+    byte busNumberPassed = 0;
 
     //check DS18B20Buses is initialized
     if (!_initialized) {
@@ -235,16 +251,26 @@ void WebDS18B20Buses::InitWebServer(AsyncWebServer &server) {
       return;
     }
 
-    //check bus param is there
-    if (!request->hasParam(F("bus"))) {
-      request->send(400, F("text/html"), F("Missing parameter"));
-      return;
+    char paramName[5] = {'b', 'u', 's', '0', 0};
+    byte i = 0;
+
+    //for each bus numbers
+    while (i < _nbOfBuses && !requestPassed) {
+      //build paramName
+      paramName[3] = '0' + i;
+
+      //check bus param is there
+      if (request->hasParam(paramName)) {
+        busNumberPassed = i;
+        requestPassed = true;
+      }
+      i++;
     }
-    //convert busNumber
-    int busNumber = request->getParam(F("bus"))->value().toInt();
-    //check value found
-    if ((busNumber == 0 && request->getParam(F("bus"))->value() != "0") || busNumber >= _nbOfBuses) {
-      request->send(400, F("text/html"), F("Incorrect bus number"));
+
+    //if no correct request passed
+    if (!requestPassed) {
+      //answer with error and return
+      request->send(400, F("text/html"), F("No valid request received"));
       return;
     }
 
@@ -255,14 +281,18 @@ void WebDS18B20Buses::InitWebServer(AsyncWebServer &server) {
 #endif
 
     //list OneWire Temperature sensors
-    request->send(200, F("text/json"), DS18B20Bus(_owBusesPins[busNumber][0], _owBusesPins[busNumber][1]).GetRomCodeListJSON());
+    request->send(200, F("text/json"), DS18B20Bus(_owBusesPins[busNumberPassed][0], _owBusesPins[busNumberPassed][1]).GetRomCodeListJSON());
 
 #if ESP01_PLATFORM
     Serial.begin(SERIAL_SPEED);
 #endif
   });
 
-  server.on("/getTemp", HTTP_GET, [this](AsyncWebServerRequest * request) {
+  server.on("/getT", HTTP_GET, [this](AsyncWebServerRequest * request) {
+
+    bool requestPassed = false;
+    byte busNumberPassed = 0;
+    byte romCodePassed[8];
 
     //check DS18B20Buses is initialized
     if (!_initialized) {
@@ -270,38 +300,37 @@ void WebDS18B20Buses::InitWebServer(AsyncWebServer &server) {
       return;
     }
 
-    //check bus param
-    if (!request->hasParam(F("bus"))) {
-      request->send(400, F("text/html"), F("Missing parameter"));
+    char paramName[5] = {'b', 'u', 's', '0', 0};
+    byte i = 0;
+
+    //for each bus numbers
+    while (i < _nbOfBuses && !requestPassed) {
+      //build paramName
+      paramName[3] = '0' + i;
+
+      //check bus param is there
+      if (request->hasParam(paramName)) {
+
+        //get ROMCode
+        const char* ROMCodeA = request->getParam(paramName)->value().c_str();
+        //if it's a correct ROMCode
+        if (isROMCodeString(ROMCodeA)) {
+          //Parse it
+          for (byte j = 0; j < 8; j++) romCodePassed[j] = (AsciiToHex(ROMCodeA[j * 2]) * 0x10) + AsciiToHex(ROMCodeA[(j * 2) + 1]);
+          busNumberPassed = i;
+          requestPassed = true;
+        }
+      }
+      i++;
+    }
+
+    //if no correct request passed
+    if (!requestPassed) {
+      //answer with error and return
+      request->send(400, F("text/html"), F("No valid request received"));
       return;
     }
-    //convert busNumber
-    int busNumber = request->getParam(F("bus"))->value().toInt();
-    //check value found
-    if ((busNumber == 0 && request->getParam(F("bus"))->value() != "0") || busNumber >= _nbOfBuses) {
-      request->send(400, F("text/html"), F("Incorrect bus number"));
-      return;
-    }
 
-
-    //check ROMCode param
-    if (!request->hasParam(F("ROMCode"))) {
-      request->send(400, F("text/html"), F("Missing ROMCode"));
-      return;
-    }
-
-    const char* ROMCodeA = request->getParam(F("ROMCode"))->value().c_str();
-
-    if (!isROMCodeString(ROMCodeA)) {
-      request->send(400, F("text/html"), F("Incorrect ROMCode"));
-      return;
-    }
-
-    //Parse ROMCode
-    byte romCode[8];
-    for (byte i = 0; i < 8; i++) {
-      romCode[i] = (AsciiToHex(ROMCodeA[i * 2]) * 0x10) + AsciiToHex(ROMCodeA[(i * 2) + 1]);
-    }
 
 #if ESP01_PLATFORM
     Serial.flush();
@@ -310,14 +339,14 @@ void WebDS18B20Buses::InitWebServer(AsyncWebServer &server) {
 #endif
 
     //Read Temperature
-    String temperatureJSON = DS18B20Bus(_owBusesPins[busNumber][0], _owBusesPins[busNumber][1]).GetTempJSON(romCode);
-
-    if (temperatureJSON.length() > 0) request->send(200, F("text/json"), temperatureJSON);
-    else request->send(500, F("text/html"), F("Read sensor failed"));
+    String temperatureJSON = DS18B20Bus(_owBusesPins[busNumberPassed][0], _owBusesPins[busNumberPassed][1]).GetTempJSON(romCodePassed);
 
 #if ESP01_PLATFORM
     Serial.begin(SERIAL_SPEED);
 #endif
+
+    if (temperatureJSON.length() > 0) request->send(200, F("text/json"), temperatureJSON);
+    else request->send(500, F("text/html"), F("Read sensor failed"));
   });
 
   server.on("/gs1", HTTP_GET, [this](AsyncWebServerRequest * request) {
