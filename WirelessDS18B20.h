@@ -1,56 +1,70 @@
 #ifndef WirelessDS18B20_h
 #define WirelessDS18B20_h
 
+#include <ESP8266WiFi.h>
+#include <ESPAsyncTCP.h>
+#include <ESPAsyncWebServer.h>
 
-//DomoChip Informations
-//------------Compile for 1M 64K SPIFFS------------
-//Configuration Web Pages
-//http://IP/
-//http://IP/config
-//http://IP/fw
-//DS18B20 Request Web Pages
-//http://IP/getL?bus0
-//http://IP/getT?bus0=0A1B2C3D4E5F6071
+#include "Main.h"
+#include "src\Utils.h"
+
+#include "OneWireDualPin.h"
 
 
-#define VERSION_NUMBER "3.1.3"
+const char appDataPredefPassword[] PROGMEM = "ewcXoCt4HHjZUvY1";
 
-#define MODEL "WDS18B20"
+#define MAX_NUMBER_OF_BUSES 4
 
-//Enable developper mode (fwdev webpage and SPIFFS is used)
-#define DEVELOPPER_MODE 0
+//Structure of Application Data 1
+class AppData1 {
 
-
-//Choose ESP-01 version or not
-//For ESP-01, Pins used are restricted
-//Pin 3 (RX) = 1Wire bus input
-//Pin 0 = 1Wire bus output
-//Pin 2 = config Mode button
-//For other models, Pin Numbers and Buses are defined through Configuration Web Page
-#define ESP01_PLATFORM 1
-
-//Choose Serial Speed
-#define SERIAL_SPEED 115200
-
-//Choose Pin used to boot in Rescue Mode
-#define RESCUE_BTN_PIN 2
+  public:
+    byte numberOfBuses = 0;
+    uint8_t owBusesPins[MAX_NUMBER_OF_BUSES][2];
 
 
-//construct Version text
-#if DEVELOPPER_MODE
-#define VERSION_W_DEV VERSION_NUMBER "-DEV"
-#else
-#define VERSION_W_DEV VERSION_NUMBER
+    void SetDefaultValues() {
+      numberOfBuses = 0;
+      memset(owBusesPins, 0, MAX_NUMBER_OF_BUSES * 2);
+    }
+
+    String GetJSON();
+    bool SetFromParameters(AsyncWebServerRequest* request, AppData1 &tempAppData);
+};
+
+
+//intermediate class that corresponds to a OneWire Bus with DS12B20 sensors
+class DS18B20Bus: public OneWireDualPin {
+  private:
+    boolean ReadScratchPad(byte addr[], byte data[]);
+    void WriteScratchPad(byte addr[], byte th, byte tl, byte cfg);
+    void CopyScratchPad(byte addr[]);
+    void StartConvertT(byte addr[]);
+
+  public:
+    DS18B20Bus(uint8_t pinIn, uint8_t pinOut);
+    void SetupTempSensors();
+    String GetTempJSON(byte addr[]);
+    String GetRomCodeListJSON();
+};
+
+//Real Application class
+
+class WebDS18B20Buses {
+
+  private:
+    AppData1* _appData1;
+
+    bool _initialized = false;
+
+    boolean isROMCodeString(const char* s);
+
+    String GetStatus();
+
+  public:
+    void Init(AppData1 &appData1);
+    void InitWebServer(AsyncWebServer &server);
+    void Run();
+};
+
 #endif
-
-#if ESP01_PLATFORM
-#define VERSION VERSION_W_DEV " (ESP-01)"
-#else
-#define VERSION VERSION_W_DEV
-#endif
-
-
-
-#endif
-
-

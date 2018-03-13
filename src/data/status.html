@@ -3,8 +3,8 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="description" content="WDS18B20">
-        <title>Domochip WirelessDS18B20</title>
+        <meta name="description" content="$ShortApplicationName$">
+        <title>Domochip $ApplicationName$</title>
         
         <link rel="stylesheet" href="pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
         <link rel="stylesheet" href="side-menu.css">
@@ -21,7 +21,7 @@
             <div id="menu">
                 <div class="pure-menu">
                     <div class="pure-menu-heading">Domochip</div>
-                    <div class="pure-menu-heading">WDS18B20</div>
+                    <div class="pure-menu-heading">$ShortApplicationName$</div>
 
                     <ul class="pure-menu-list">
                         <li class="pure-menu-item pure-menu-selected"><a href="./" class="pure-menu-link">Status</a></li>
@@ -46,8 +46,7 @@
                     Station : <span id="sta"></span> (<span id="stai"></span>)<br>
                     FreeHeap : <span id="f"></span><br>
 
-                            <h2 class="content-subhead">OneWire <span id="l2"><h6 style="display:inline"><b> Loading...</b></h6></span></h2>
-        <div id="AllSensors"></div>
+                    $HTMLContent$
                     
                 </div>
             </div>
@@ -83,25 +82,7 @@
                     $("#l1").html('<h4 style="display:inline;color:red;"><b> Failed</b></h4>');
                 });
 
-                            $.getJSON("/gc", function(GC){
-
-                var buses = [];
-                for(i=0;i<GC.n;i++) buses.push(i);
-
-                $(buses).each(function(bus){
-                    $("#AllSensors").append("<h3>Bus "+bus+"</h3></div>");
-                    $("#AllSensors").append("<div id='bus"+bus+"' class='pure-controls'></div>");
-                    
-                    $.getJSON("/getL?bus"+bus,function(SList){
-                        $(SList.TemperatureSensorList).each(function(index,RomCode){
-                            $.getJSON("/getT?bus"+bus+"="+RomCode, function(temp){
-                                $("#bus"+bus).append(RomCode+" : <a class='pure-button pure-button-primary' href='/getT?bus"+bus+"="+RomCode+"'>"+temp.Temperature+"°C</a><br>");
-                            });
-                        });
-                    });
-                });
-            });
-            $("#l2").fadeOut();
+                $HTMLScriptInReady$
             });
         </script>
         <script src="side-menu.js"></script>

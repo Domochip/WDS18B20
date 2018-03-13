@@ -3,8 +3,8 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="description" content="WDS18B20">
-        <title>Domochip WirelessDS18B20</title>
+        <meta name="description" content="$ShortApplicationName$">
+        <title>Domochip $ApplicationName$</title>
         
         <link rel="stylesheet" href="pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
         <link rel="stylesheet" href="side-menu.css">
@@ -21,7 +21,7 @@
             <div id="menu">
                 <div class="pure-menu">
                     <div class="pure-menu-heading">Domochip</div>
-                    <div class="pure-menu-heading">WDS18B20</div>
+                    <div class="pure-menu-heading">$ShortApplicationName$</div>
 
                     <ul class="pure-menu-list">
                         <li class="pure-menu-item"><a href="./" class="pure-menu-link">Status</a></li>
@@ -84,12 +84,7 @@
                                 </div>
                             </div>
                             
-                                    <h2 class="content-subhead">OneWire</h2>
-        <div class="pure-control-group">
-            <label for="n">number Of OW Bus</label>
-            <input type='number' id='n' name='n' min='1'><span id='e'></span>
-        </div>
-        <div id="buses"></div>
+                            $HTMLContent$
 
                             <div class="pure-controls">
                                 <input type='submit' value='Submit Config' class="pure-button pure-button-primary">
@@ -186,20 +181,7 @@
                 });
             }
 
-                    function onNChange(){
-            for(i=0;i<$("#n").val();i++){
-                $("#b"+i+"i").prop("disabled",false).prop("required",true);
-                $("#b"+i+"o").prop("disabled",false).prop("required",true);
-                $("#b"+i).show();
-            }
-            for(i=$("#n").val();i<$("#n").prop("max");i++){
-                $("#b"+i).hide();
-                $("#b"+i+"i").prop("disabled",true).prop("required",false);
-                $("#b"+i+"o").prop("disabled",true).prop("required",false);
-            }
-        };
-
-        $("#n").change(onNChange);
+            $HTMLScript$
 
             $(document).ready(function(){
                 $.getJSON("/gc", function(GC){
@@ -214,22 +196,7 @@
 
                     onStaticIPChange();
 
-                            for(i=0;i<GC.nm;i++){
-            $("#buses").append('<div id="b'+i+'"><div class="pure-control-group"><label for="b'+i+'">bus'+i+' Input/Output Pins</label><input type="number" id="b'+i+'i" name="b'+i+'i" min="0" max="16" size="2"> / <input type="number" id="b'+i+'o" name="b'+i+'o" min="0" max="16" size="2"></div></div>');
-        }
-
-        $("#n").prop("max",GC.nm);
-        $("#n").trigger("change");
-        $.each(GC,function(k,v){
-            if(k.substring(0,1)=="b") $('#'+k).val(v);
-        });
-
-        if(GC.e==1){
-            $("#n").prop("disabled",true);
-            $("#b0i").prop("disabled",true);
-            $("#b0o").prop("disabled",true);
-            $("#e").append("<b> ESP-01 have only this bus</b>");
-        }
+                    $HTMLFillinConfigForm$
 
                     $("#f").show();
                     $("#l1").fadeOut();

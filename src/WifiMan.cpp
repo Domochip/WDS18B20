@@ -1,11 +1,13 @@
 #include "WifiMan.h"
 
-bool WifiMan::ConfigStaticIP(uint32_t ip, uint32_t gw, uint32_t mask, uint32_t dns1, uint32_t dns2) {
-  _ip = ip;
-  _gw = gw;
-  _mask = mask;
-  _dns1 = dns1;
-  _dns2 = dns2;
+bool WifiMan::ConfigIP(uint32_t ip, uint32_t gw, uint32_t mask, uint32_t dns1, uint32_t dns2) {
+  if (_ip) {
+    _ip = ip;
+    _gw = gw;
+    _mask = mask;
+    _dns1 = dns1;
+    _dns2 = dns2;
+  }
 }
 
 bool WifiMan::Init(char* ssid, char* password, char* hostname, char* apSSID, char* apPassword, uint16_t retryPeriod) {
@@ -65,6 +67,18 @@ bool WifiMan::Init(char* ssid, char* password, char* hostname, char* apSSID, cha
       WiFi.enableAP(false);
       result = true;
       WiFi.persistent(false);
+#ifdef STATUS_LED_GOOD
+      STATUS_LED_GOOD
+#endif
+    }
+    else{
+        WiFi.mode(WIFI_AP);
+        WiFi.softAP(_apSsid, apPassword, _apChannel);
+        Serial.print(F("Enabling AP (")); Serial.print(WiFi.softAPIP()); Serial.println(')');
+        _retryStation = true;
+#ifdef STATUS_LED_WARNING
+        STATUS_LED_WARNING
+#endif
     }
 
     //Configure handlers
@@ -75,10 +89,16 @@ bool WifiMan::Init(char* ssid, char* password, char* hostname, char* apSSID, cha
         Serial.print(F("WiFiDisco : Enabling AP (")); Serial.print(WiFi.softAPIP()); Serial.println(')');
         _retryStation = true;
       }
+#ifdef STATUS_LED_WARNING
+      STATUS_LED_WARNING
+#endif
     });
     _wifiHandler2 = WiFi.onStationModeGotIP([](const WiFiEventStationModeGotIP & evt) {
       if (WiFi.getMode()&WIFI_AP) WiFi.enableAP(false);
       Serial.print(F("WiFiReco : ")); Serial.println(WiFi.localIP());
+#ifdef STATUS_LED_GOOD
+      STATUS_LED_GOOD
+#endif
     });
 
   }
@@ -90,6 +110,9 @@ bool WifiMan::Init(char* ssid, char* password, char* hostname, char* apSSID, cha
     Serial.print(F(" AP mode(")); Serial.print(WiFi.softAPIP()); Serial.print(F(") "));
     result = true;
     WiFi.persistent(false);
+#ifdef STATUS_LED_GOOD
+    STATUS_LED_GOOD
+#endif
   }
 
   return result;

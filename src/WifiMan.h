@@ -3,6 +3,8 @@
 
 #include <ESP8266WiFi.h>
 
+#include "..\Main.h"
+
 class WifiMan {
 
   private:
@@ -20,7 +22,7 @@ class WifiMan {
     uint32_t _dns2 = 0;
 
   public:
-    bool ConfigStaticIP(uint32_t ip, uint32_t gw, uint32_t mask, uint32_t dns1 = 0, uint32_t dns2 = 0);
+    bool ConfigIP(uint32_t ip, uint32_t gw, uint32_t mask, uint32_t dns1 = 0, uint32_t dns2 = 0);
     bool Init(char* ssid, char* password, char* hostname, char* apSSID, char* apPassword, uint16_t retryPeriod = 300);
     void Run();
 };

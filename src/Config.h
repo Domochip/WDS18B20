@@ -5,16 +5,11 @@
 #include <ESPAsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 
-#include "data\config.html.gz.h"
-
-#define DEFAULT_AP_SSID "WirelessDS18B20"
-#define DEFAULT_AP_PSK "PasswordDS"
+#include "..\Main.h"
 
 const char predefPassword[] PROGMEM = "ewcXoCt4HHjZUvY0";
 
-#define MAX_NUMBER_OF_BUSES 4
-
-class Config {
+class SystemData {
   public:
     char ssid[32 + 1] = {0};
     char password[64 + 1] = {0};
@@ -25,9 +20,6 @@ class Config {
     uint32_t dns1 = 0;
     uint32_t dns2 = 0;
 
-    byte numberOfBuses = 0;
-    uint8_t owBusesPins[MAX_NUMBER_OF_BUSES][2];
-
     void SetDefaultValues() {
       ssid[0] = 0;
       password[0] = 0;
@@ -37,13 +29,23 @@ class Config {
       mask = 0;
       dns1 = 0;
       dns2 = 0;
-
-      numberOfBuses = 0;
-      memset(owBusesPins, 0, MAX_NUMBER_OF_BUSES * 2);
     }
-    static byte AsciiToHex(char c); //Utils
-    static bool FingerPrintS2A(byte* fingerPrintArray, const char* fingerPrintToDecode);
-    static char* FingerPrintA2S(char* fpBuffer, byte* fingerPrintArray, char separator = 0);
+
+    String GetJSON();
+
+    bool SetFromParameters(AsyncWebServerRequest* request, SystemData &tempSystemData);
+};
+
+class Config {
+  public:
+
+    SystemData systemData;
+    AppData1 appData1;
+
+    void SetDefaultValues() {
+      systemData.SetDefaultValues();
+      appData1.SetDefaultValues();
+    }
 
     bool Save();
     bool Load();
@@ -53,7 +55,6 @@ class Config {
     bool SetFromParameters(AsyncWebServerRequest* request);
     uint16_t crc; ///!\ crc should always stay in last position
 };
-
 
 #endif
 
