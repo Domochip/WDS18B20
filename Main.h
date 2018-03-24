@@ -1,6 +1,8 @@
 #ifndef Main_h
 #define Main_h
 
+#include <arduino.h>
+
 #include "data\status.html.gz.h"
 #include "data\config.html.gz.h"
 #include "data\fw.html.gz.h"
@@ -19,13 +21,11 @@
 //include Application header file
 #include "WirelessDS18B20.h"
 
-#define APPLICATION_NAME "DomoChip Wireless DS18B20"
-#define APPLICATION_CLASS WebDS18B20Buses
-#define APPLICATION_VAR webDSBuses
+#define APPLICATION1_NAME "WDS18B20"
+#define APPLICATION1_DESC "DomoChip Wireless DS18B20"
+#define APPLICATION1_CLASS WebDS18B20Buses
 
 #define VERSION_NUMBER "3.1.4"
-
-#define MODEL "WDS18B20"
 
 #define DEFAULT_AP_SSID "WirelessDS"
 #define DEFAULT_AP_PSK "PasswordDS"
@@ -62,5 +62,4 @@
 #endif
 
 #endif
-
 

@@ -33,14 +33,14 @@
 
             <div id="main">
                 <div class="header">
-                    <h1>Configuration <span id="l1"><h6 style="display:inline"><b> Loading...</b></h6></span></h1>
+                    <h1>Configuration<span id="l"><h6 style="display:inline"><b> Loading...</b></h6></span></h1>
                     <span id='i'></span><br>
                 </div>
 
                 <div class="content">
-                    <form class="pure-form pure-form-aligned" id='f' style='display:none'>
+                    <h2 class="content-subhead">WiFi<span id="lw"><h6 style="display:inline"><b> Loading...</b></h6></span></h2>
+                    <form class="pure-form pure-form-aligned" id='fw'>
                         <fieldset>
-                            <h2 class="content-subhead">Core</h2>
                             <div class="pure-control-group">
                                 <label for="s">SSID</label>
                                 <input type='text' id='s' name='s' maxlength='32' list="wnl">
@@ -83,20 +83,28 @@
                                     <input type='text' id='dns2' name='dns2' pattern='((^|\.)((25[0-5])|(2[0-4]\d)|(1\d\d)|([1-9]?\d))){4}$'>
                                 </div>
                             </div>
-                            
-                                    <h2 class="content-subhead">OneWire</h2>
-        <div class="pure-control-group">
-            <label for="n">number Of OW Bus</label>
-            <input type='number' id='n' name='n' min='1'><span id='e'></span>
-        </div>
-        <div id="buses"></div>
-
                             <div class="pure-controls">
-                                <input type='submit' value='Submit Config' class="pure-button pure-button-primary">
+                                <input type='submit' value='Save' class="pure-button pure-button-primary" disabled>
                             </div>
                         </fieldset>
                     </form>
-                    <span id='r'></span>
+                    <span id='rw'></span>
+                            <h2 class="content-subhead">OneWire<span id="l1"><h6 style="display:inline"><b> Loading...</b></h6></span></h2>
+        <form class="pure-form pure-form-aligned" id='f1'>
+            <fieldset>
+
+            <div class="pure-control-group">
+                <label for="n">number Of OW Bus</label>
+                <input type='number' id='n' name='n' min='1'><span id='e'></span>
+            </div>
+            <div id="buses"></div>
+        
+                <div class="pure-controls">
+                    <input type='submit' value='Save' class="pure-button pure-button-primary" disabled>
+                </div>
+            </fieldset>
+        </form>
+        <span id='r1'></span>
                 </div>
             </div>
         </div>
@@ -104,14 +112,14 @@
         <script>
             if (!window.jQuery){
                 document.write('<script type="text/javascript" src="/jquery-3.2.1.min.js"><\/script>');
-                document.getElementById('l').innerHTML='<h4 style="display:inline"> (JQuery loaded locally)</h4>';
+                document.getElementById('l').innerHTML=' <h4 style="display:inline"> (JQuery loaded locally)</h4>';
             }
             else $("#l").fadeOut();
         </script>
         <script>
             if (!window.jQuery) {
                 document.getElementById('l').innerHTML='';
-                document.getElementById('l1').innerHTML='<h6 style="display:inline;color:red;"><b> Failed</b></h6>';
+                document.getElementById('lw').innerHTML='<h6 style="display:inline;color:red;"><b> Failed</b></h6>';
                 document.getElementById('i').innerHTML='<h3 style="color:red"> JQuery is required. We were not able to load it :-(</h3>';
             }
         </script>
@@ -134,7 +142,7 @@
             };
             $("#staticip").change(onStaticIPChange);
 
-            $("#f").submit(function(event){
+            $("#fw").submit(function(event){
                 if(!$("#staticip").prop("checked")){
                     $("#ip").val('');
                     $("#gw").val('');
@@ -142,15 +150,16 @@
                     $("#dns1").val('');
                     $("#dns2").val('');
                 }
-                $("#r").html("Saving Configuration...");
-                $.post("/sc",$("#f").serialize(),function(){ 
-                    $("#f").hide();
+                $("#rw").html("Saving Configuration...");
+                $.post("/scw",$("#fw").serialize(),function(){ 
+                    $("#fw").hide();
                     var reload10sec=document.createElement('script');
-                    if($("#staticip").prop("checked") && $("#ip").val()!="0.0.0.0") reload10sec.text='var count=9;var cdi=setInterval(function(){$("#cd").text(count);if(!count){clearInterval(cdi);location.assign("http://' + $("#ip").val() + '/config");}count--;},1000);';
+                    if(!$("#s").val()) reload10sec.text='var count=9;var cdi=setInterval(function(){$("#cd").text(count);if(!count){clearInterval(cdi);location.assign("http://192.168.4.1/config");}count--;},1000);';
+                    else if($("#staticip").prop("checked") && $("#ip").val()!="0.0.0.0") reload10sec.text='var count=9;var cdi=setInterval(function(){$("#cd").text(count);if(!count){clearInterval(cdi);location.assign("http://' + $("#ip").val() + '/config");}count--;},1000);';
                     else reload10sec.text='var count=9;var cdi=setInterval(function(){$("#cd").text(count);if(!count){clearInterval(cdi);location.reload();}count--;},1000);';
-                    $('#r').html('<h3><b>Configuration saved <span style="color: green;">successfully</span>. System is restarting now.</b></h3>This page will be reloaded in <span id="cd">10</span>sec.').append(reload10sec);
+                    $('#rw').html('<h3><b>Configuration saved <span style="color: green;">successfully</span>. System is restarting now.</b></h3>This page will be reloaded in <span id="cd">10</span>sec.').append(reload10sec);
                 }).fail(function(){
-                    $('#r').html('<h3><b>Configuration <span style="color: red;">error</span>.</b></h3>');
+                    $('#rw').html('<h3><b>Configuration <span style="color: red;">error</span>.</b></h3>');
                 });
                 event.preventDefault();
             });
@@ -198,47 +207,69 @@
                 $("#b"+i+"o").prop("disabled",true).prop("required",false);
             }
         };
-
         $("#n").change(onNChange);
 
-            $(document).ready(function(){
-                $.getJSON("/gc", function(GC){
+        $("#f1").submit(function(event){
+            $("#r1").html("Saving Configuration...");
+            $.post("/sc1",$("#f1").serialize(),function(){ 
+                $("#f1").hide();
+                var reload5sec=document.createElement('script');
+                reload5sec.text='var count=4;var cdi=setInterval(function(){$("#cd").text(count);if(!count){clearInterval(cdi);location.reload();}count--;},1000);';
+                $('#r1').html('<h3><b>Configuration saved <span style="color: green;">successfully</span>.</b></h3>This page will be reloaded in <span id="cd">5</span>sec.').append(reload5sec);
+            }).fail(function(){
+                $('#r1').html('<h3><b>Configuration <span style="color: red;">error</span>.</b></h3>');
+            });
+            event.preventDefault();
+        });
 
-                    $.each(GC,function(k,v){
+            $(document).ready(function(){
+                $.getJSON("/gcw", function(GCW){
+
+                    $.each(GCW,function(k,v){
 
                         if($('#'+k).prop('type')!='checkbox') $('#'+k).val(v);
-                        else $('#'+k).prop("checked",v=="on");
+                        else $('#'+k).prop("checked",v);
 
                         $('#'+k).trigger("change");
                     })
 
-                    onStaticIPChange();
-
-                            for(i=0;i<GC.nm;i++){
-            $("#buses").append('<div id="b'+i+'"><div class="pure-control-group"><label for="b'+i+'">bus'+i+' Input/Output Pins</label><input type="number" id="b'+i+'i" name="b'+i+'i" min="0" max="16" size="2"> / <input type="number" id="b'+i+'o" name="b'+i+'o" min="0" max="16" size="2"></div></div>');
-        }
-
-        $("#n").prop("max",GC.nm);
-        $("#n").trigger("change");
-        $.each(GC,function(k,v){
-            if(k.substring(0,1)=="b") $('#'+k).val(v);
-        });
-
-        if(GC.e==1){
-            $("#n").prop("disabled",true);
-            $("#b0i").prop("disabled",true);
-            $("#b0o").prop("disabled",true);
-            $("#e").append("<b> ESP-01 have only this bus</b>");
-        }
-
-                    $("#f").show();
-                    $("#l1").fadeOut();
+                    $("input[type=submit]",$("#fw")).prop("disabled",false);
+                    $("#lw").fadeOut();
 
                     getNetworkList();
                 })
                 .fail(function(){
-                    $("#l1").html('<h6 style="display:inline;color:red;"><b> Failed</b></h6>');
+                    $("#lw").html('<h6 style="display:inline;color:red;"><b> Failed</b></h6>');
                 });
+
+                
+        $.getJSON("/gc1", function(GC1){
+
+            for(i=0;i<GC1.nm;i++){
+                $("#buses").append('<div id="b'+i+'"><div class="pure-control-group"><label for="b'+i+'">bus'+i+' Input/Output Pins</label><input type="number" id="b'+i+'i" name="b'+i+'i" min="0" max="16" size="2"> / <input type="number" id="b'+i+'o" name="b'+i+'o" min="0" max="16" size="2"></div></div>');
+            }
+
+            $('#n').val(GC1.n);
+            $("#n").prop("max",GC1.nm);
+            $("#n").trigger("change");
+    
+            $.each(GC1,function(k,v){
+                if(k.substring(0,1)=="b") $('#'+k).val(v);
+            });
+
+            if(GC1.e==1){
+                $("#n").prop("disabled",true);
+                $("#b0i").prop("disabled",true);
+                $("#b0o").prop("disabled",true);
+                $("#e").append("<b> ESP-01 have only this bus</b>");
+            }
+
+            $("input[type=submit]",$("#f1")).prop("disabled",false);
+            $("#l1").fadeOut();
+        })
+        .fail(function(){
+            $("#l1").html('<h6 style="display:inline;color:red;"><b> Failed</b></h6>');
+        });
             });
         </script>
         <script src="side-menu.js"></script>
