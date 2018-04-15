@@ -55,14 +55,6 @@ void DS18B20Bus::CopyScratchPad(byte addr[])
   select(addr);
   write(0x48); //Copy ScratchPad
 }
-//------------------------------------------
-// DS18X20 Start Temperature conversion
-void DS18B20Bus::StartConvertT(byte addr[])
-{
-  reset();
-  select(addr);
-  write(0x44); // start conversion
-}
 
 //------------------------------------------
 // Constructor for WebDS18B20Bus that call constructor of parent class OneWireDualPin
@@ -76,6 +68,12 @@ void DS18B20Bus::SetupTempSensors()
   byte addr[8];
   byte data[9];
   boolean scratchPadReaded;
+
+#if ESP01_PLATFORM
+  Serial.flush();
+  delay(5);
+  Serial.end();
+#endif
 
   //while we find some devices
   while (search(addr))
@@ -91,11 +89,11 @@ void DS18B20Bus::SetupTempSensors()
       continue;
 
     //if config is not correct
-    if (data[2] != 0x50 || data[3] != 0x00 || data[4] != 0x5F)
+    if (data[2] != 0x50 || data[3] != 0x00 || data[4] != 0x7F)
     {
 
-      //write ScratchPad with Th=80°C, Tl=0°C, Config 11bit resolution
-      WriteScratchPad(addr, 0x50, 0x00, 0x5F);
+      //write ScratchPad with Th=80°C, Tl=0°C, Config 12bits resolution
+      WriteScratchPad(addr, 0x50, 0x00, 0x7F);
 
       scratchPadReaded = ReadScratchPad(addr, data);
       //if scratchPad read failed then continue to next 1-Wire device
@@ -106,60 +104,129 @@ void DS18B20Bus::SetupTempSensors()
       CopyScratchPad(addr);
     }
   }
+#if ESP01_PLATFORM
+  Serial.begin(SERIAL_SPEED);
+#endif
 }
 //------------------------------------------
-// function that get temperature from a DS18X20 and return it in JSON (run convertion, get scratchpad then calculate temperature)
-String DS18B20Bus::GetTempJSON(byte addr[])
+// DS18X20 Start Temperature conversion
+void DS18B20Bus::StartConvertT()
 {
+#if ESP01_PLATFORM
+  Serial.flush();
+  delay(5);
+  Serial.end();
+#endif
 
-  byte i, j;
-  byte data[12];
+  reset();
+  skip();
+  write(0x44); // start conversion
 
-  StartConvertT(addr);
+#if ESP01_PLATFORM
+  Serial.begin(SERIAL_SPEED);
+#endif
+}
+//------------------------------------------
+// DS18X20 Read Temperatures from all sensors
+void DS18B20Bus::ReadTemperatures()
+{
+  //tempList will receive new list and values
+  TemperatureList *tempList = new TemperatureList();
 
-  //wait for conversion end (DS18B20 are powered)
-  while (read_bit() == 0)
-    delay(10);
+  uint8_t romCode[8];
 
-  //if read of scratchpad failed (3 times inside function) then return empty String
-  if (!ReadScratchPad(addr, data))
-    return String();
+#if ESP01_PLATFORM
+  Serial.flush();
+  delay(5);
+  Serial.end();
+#endif
 
-  // Convert the data to actual temperature
-  // because the result is a 16 bit signed integer, it should
-  // be stored to an "int16_t" type, which is always 16 bits
-  // even when compiled on a 32 bit processor.
-  int16_t raw = (data[1] << 8) | data[0];
-  if (addr[0] == 0x10)
-  {                 //type S temp Sensor
-    raw = raw << 3; // 9 bit resolution default
-    if (data[7] == 0x10)
+  //list all romCodes
+  reset_search();
+  while (search(romCode))
+  {
+
+    //if ROM received is incorrect or not a Temperature sensor THEN continue to next device
+    if ((crc8(romCode, 7) != romCode[7]) || (romCode[0] != 0x10 && romCode[0] != 0x22 && romCode[0] != 0x28))
+      continue;
+
+    //allocate memory
+    if (!tempList->romCodes)
+      tempList->romCodes = (byte(*)[8])malloc(++tempList->nbSensors * 8 * sizeof(byte));
+    else
+      tempList->romCodes = (byte(*)[8])realloc(tempList->romCodes, ++tempList->nbSensors * 8 * sizeof(byte));
+
+    //copy the romCode
+    for (byte i = 0; i < 8; i++)
     {
-      // "count remain" gives full 12 bit resolution
-      raw = (raw & 0xFFF0) + 12 - data[6];
+      tempList->romCodes[tempList->nbSensors - 1][i] = romCode[i];
     }
   }
-  else
+
+  //prepare temperatures list
+  tempList->temperatures = (float *)malloc(tempList->nbSensors * sizeof(float));
+  byte data[12]; //buffer that receive scratchpad
+  //now read all temperatures
+  for (byte i = 0; i < tempList->nbSensors; i++)
   {
-    byte cfg = (data[4] & 0x60);
-    // at lower res, the low bits are undefined, so let's zero them
-    if (cfg == 0x00)
-      raw = raw & ~7; // 9 bit resolution, 93.75 ms
-    else if (cfg == 0x20)
-      raw = raw & ~3; // 10 bit res, 187.5 ms
-    else if (cfg == 0x40)
-      raw = raw & ~1; // 11 bit res, 375 ms
-    //// default is 12 bit resolution, 750 ms conversion time
+    //if read of scratchpad failed (3 times inside function) then put NaN in the list
+    if (!ReadScratchPad(tempList->romCodes[i], data))
+      tempList->temperatures[i] = (0.0 / 0.0); //NaN
+    else                                       //else we were able to read data from sensor
+    {
+
+      // Convert the data to actual temperature
+      // because the result is a 16 bit signed integer, it should
+      // be stored to an "int16_t" type, which is always 16 bits
+      // even when compiled on a 32 bit processor.
+      int16_t raw = (data[1] << 8) | data[0];
+      if (tempList->romCodes[i][0] == 0x10)
+      {                 //type S temp Sensor
+        raw = raw << 3; // 9 bit resolution default
+        if (data[7] == 0x10)
+        {
+          // "count remain" gives full 12 bit resolution
+          raw = (raw & 0xFFF0) + 12 - data[6];
+        }
+      }
+      else
+      {
+        byte cfg = (data[4] & 0x60);
+        // at lower res, the low bits are undefined, so let's zero them
+        if (cfg == 0x00)
+          raw = raw & ~7; // 9 bit resolution, 93.75 ms
+        else if (cfg == 0x20)
+          raw = raw & ~3; // 10 bit res, 187.5 ms
+        else if (cfg == 0x40)
+          raw = raw & ~1; // 11 bit res, 375 ms
+        // default is 12 bit resolution, 750 ms conversion time
+      }
+
+      //final temperature is raw/16
+
+      //return temperature
+      tempList->temperatures[i] = (float)raw / 16.0;
+    }
   }
-  //result is (float)raw / 16.0;
 
-  //make JSON
-  String gtJSON(F("{\"Temperature\": "));
-  gtJSON.reserve(28);
-  gtJSON += String((float)raw / 16.0, 2) + '}';
+#if ESP01_PLATFORM
+  Serial.begin(SERIAL_SPEED);
+#endif
 
-  //return JSON temperature
-  return gtJSON;
+  //Our new value list is ready
+  //switch to make it available
+  TemperatureList *oldList = temperatureList; //backup current one
+  temperatureList = tempList;                 //make new one available
+
+  //now we need to free memory of the old one
+  if (oldList)
+  {
+    if (oldList->romCodes)
+      free(oldList->romCodes);
+    if (oldList->temperatures)
+      free(oldList->temperatures);
+    free(oldList);
+  }
 }
 //------------------------------------------
 // List DS18X20 sensor ROMCode and return it in JSON list
@@ -172,36 +239,110 @@ String DS18B20Bus::GetRomCodeListJSON()
   //prepare JSON structure
   String grclJSON(F("{\"TemperatureSensorList\": [\r\n"));
 
-  reset_search();
-
-  while (search(romCode))
+  if (temperatureList)
   {
-
-    //if ROM received is incorrect or not a Temperature sensor THEN continue to next device
-    if ((crc8(romCode, 7) != romCode[7]) || (romCode[0] != 0x10 && romCode[0] != 0x22 && romCode[0] != 0x28))
-      continue;
-
-    //increase grclJSON size to limit heap fragment
-    grclJSON.reserve(grclJSON.length() + 22);
-
-    //populate JSON answer with romCode found
-    if (!first)
-      grclJSON += F(",\r\n");
-    else
-      first = false;
-    grclJSON += '"';
-    for (byte i = 0; i < 8; i++)
+    for (byte i = 0; i < temperatureList->nbSensors; i++)
     {
-      if (romCode[i] < 16)
-        grclJSON += '0';
-      grclJSON += String(romCode[i], HEX);
+
+      //populate JSON answer with romCode found
+      if (i)
+        grclJSON += F(",\r\n");
+
+      grclJSON += '"';
+      for (byte j = 0; j < 8; j++)
+      {
+        if (temperatureList->romCodes[i][j] < 16)
+          grclJSON += '0';
+        grclJSON += String(temperatureList->romCodes[i][j], HEX);
+      }
+      grclJSON += '"';
     }
-    grclJSON += '"';
   }
+
   //Finalize JSON structure
   grclJSON += F("\r\n]}");
 
   return grclJSON;
+}
+
+//------------------------------------------
+// function that get temperature from a DS18X20 and return it in float (run convertion, get scratchpad then calculate temperature)
+float DS18B20Bus::GetTemp(byte addr[] = NULL)
+{
+
+  if (!temperatureList)
+    return (0.0 / 0.0);
+
+  byte pos = 0;
+
+  while (pos < temperatureList->nbSensors)
+  {
+    //if romCode match
+    if (addr[0] == temperatureList->romCodes[pos][0] && addr[1] == temperatureList->romCodes[pos][1] && addr[2] == temperatureList->romCodes[pos][2] && addr[3] == temperatureList->romCodes[pos][3] && addr[4] == temperatureList->romCodes[pos][4] && addr[5] == temperatureList->romCodes[pos][5] && addr[6] == temperatureList->romCodes[pos][6] && addr[7] == temperatureList->romCodes[pos][7])
+      break; //stop while
+    pos++;
+  }
+
+  if (pos == temperatureList->nbSensors) //if we reached the end of the list
+    return (0.0 / 0.0);                  //return NaN
+  else
+    return temperatureList->temperatures[pos]; //return temperature
+}
+
+//------------------------------------------
+// function that get temperature from a DS18X20 and return it in JSON
+String DS18B20Bus::GetTempJSON(byte addr[])
+{
+  //get temperature
+  float res = GetTemp(addr);
+
+  //if read failed return empty string
+  if (std::isnan(res))
+    return String();
+
+  //otherwise make and return JSON
+  String gtJSON(F("{\"Temperature\": "));
+  gtJSON += String(res, 2);
+  gtJSON = gtJSON + '}';
+
+  return gtJSON;
+}
+
+//------------------------------------------
+// function that get temperature from all DS18X20 and return it in JSON
+String DS18B20Bus::GetAllTempJSON()
+{
+  //JSON string to return
+  String gatJSON('{');
+
+  if (temperatureList)
+  {
+    //for each sensors
+    for (byte i = 0; i < temperatureList->nbSensors; i++)
+    {
+      //build JSON
+      if (i)
+        gatJSON += ',';
+
+      gatJSON += '"';
+      for (byte j = 0; j < 8; j++)
+      {
+        if (temperatureList->romCodes[i][j] < 16)
+          gatJSON += '0';
+        gatJSON += String(temperatureList->romCodes[i][j], HEX);
+      }
+      gatJSON += F("\":");
+      if (!std::isnan(temperatureList->temperatures[i]))
+        gatJSON += String(temperatureList->temperatures[i], 2);
+      else
+        gatJSON += F("\"NaN\"");
+    }
+  }
+
+  gatJSON += '}';
+
+  //return JSON temperatures
+  return gatJSON;
 }
 
 //----------------------------------------------------------------------
@@ -223,17 +364,164 @@ boolean WebDS18B20Buses::isROMCodeString(const char *s)
 }
 
 //------------------------------------------
+// Execute code to start temperature conversion of all sensors
+void WebDS18B20Buses::ConvertTick()
+{
+  //For all Buses
+  for (byte busNumber = 0; busNumber < numberOfBuses; busNumber++)
+  {
+    _ds18b20Buses[busNumber]->StartConvertT();
+  }
+  delay(800);
+  //For all Buses
+  for (byte busNumber = 0; busNumber < numberOfBuses; busNumber++)
+  {
+    _ds18b20Buses[busNumber]->ReadTemperatures();
+  }
+}
+
+//------------------------------------------
+// Execute code to upload temperature to MQTT if enable
+void WebDS18B20Buses::UploadTick()
+{
+  //if Home Automation upload not enabled then return
+  if (ha.protocol == HA_PROTO_DISABLED)
+    return;
+
+  //----- MQTT Protocol configured -----
+  if (ha.protocol == HA_PROTO_MQTT)
+  {
+    //sn can be used in multiple cases
+    char sn[9];
+    sprintf_P(sn, PSTR("%08x"), ESP.getChipId());
+
+    //if not connected to MQTT
+    if (!_pubSubClient->connected())
+    {
+      //generate clientID
+      String clientID(F(APPLICATION1_NAME));
+      clientID += sn;
+      //and try to connect
+      if (!ha.mqtt.username[0])
+        _pubSubClient->connect(clientID.c_str());
+      else
+      {
+        if (!ha.mqtt.password[0])
+          _pubSubClient->connect(clientID.c_str(), ha.mqtt.username, NULL);
+        else
+          _pubSubClient->connect(clientID.c_str(), ha.mqtt.username, ha.mqtt.password);
+      }
+    }
+
+    //if still not connected
+    if (!_pubSubClient->connected())
+    {
+      //return error code minus 10 (result should be negative)
+      _haSendResult = _pubSubClient->state();
+      _haSendResult -= 10;
+    }
+    // else we are connected
+    else
+    {
+      //prepare topic
+      String completeTopic, thisSensorTopic;
+      switch (ha.mqtt.type)
+      {
+      case HA_MQTT_GENERIC_1:
+        completeTopic = ha.mqtt.generic.baseTopic;
+
+        //check for final slash
+        if (completeTopic.length() && completeTopic.charAt(completeTopic.length()) != '/')
+          completeTopic += '/';
+
+        //complete the topic
+        completeTopic += F("$romcode$/temperature");
+        break;
+      case HA_MQTT_GENERIC_2:
+        completeTopic = ha.mqtt.generic.baseTopic;
+
+        //check for final slash
+        if (completeTopic.length() && completeTopic.charAt(completeTopic.length()) != '/')
+          completeTopic += '/';
+
+        //complete the topic
+        completeTopic += F("$romcode$");
+        break;
+      }
+
+      //Replace placeholders
+      if (completeTopic.indexOf(F("$sn$")) != -1)
+        completeTopic.replace(F("$sn$"), sn);
+
+      if (completeTopic.indexOf(F("$mac$")) != -1)
+        completeTopic.replace(F("$mac$"), WiFi.macAddress());
+
+      if (completeTopic.indexOf(F("$model$")) != -1)
+        completeTopic.replace(F("$model$"), APPLICATION1_NAME);
+
+      char romCodeA[17] = {0};
+      char busNumberA[2] = {0, 0};
+
+      //For all Buses
+      for (byte busNumber = 0; busNumber < numberOfBuses; busNumber++)
+      {
+        if (_ds18b20Buses[busNumber]->temperatureList) //if there is a list for this bus
+        {
+          //for each sensors found
+          for (byte i = 0; i < _ds18b20Buses[busNumber]->temperatureList->nbSensors; i++)
+          {
+            //if temperature is OK
+            if (!std::isnan(_ds18b20Buses[busNumber]->temperatureList->temperatures[i]))
+            {
+
+              //convert romCode to text in oneshot
+              sprintf_P(romCodeA, PSTR("%02x%02x%02x%02x%02x%02x%02x%02x"), _ds18b20Buses[busNumber]->temperatureList->romCodes[i][0], _ds18b20Buses[busNumber]->temperatureList->romCodes[i][1], _ds18b20Buses[busNumber]->temperatureList->romCodes[i][2], _ds18b20Buses[busNumber]->temperatureList->romCodes[i][3], _ds18b20Buses[busNumber]->temperatureList->romCodes[i][4], _ds18b20Buses[busNumber]->temperatureList->romCodes[i][5], _ds18b20Buses[busNumber]->temperatureList->romCodes[i][6], _ds18b20Buses[busNumber]->temperatureList->romCodes[i][7]);
+
+              //copy completeTopic in order to "complete" it ...
+              thisSensorTopic = completeTopic;
+
+              if (thisSensorTopic.indexOf(F("$romcode$")) != -1)
+                thisSensorTopic.replace(F("$romcode$"), romCodeA);
+
+              busNumberA[0] = busNumber + '0';
+              if (thisSensorTopic.indexOf(F("$bus$")) != -1)
+                thisSensorTopic.replace(F("$bus$"), busNumberA);
+
+              //send
+              _haSendResult = _pubSubClient->publish(thisSensorTopic.c_str(), String(_ds18b20Buses[busNumber]->temperatureList->temperatures[i], 2).c_str());
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+//------------------------------------------
 //Used to initialize configuration properties to default values
 void WebDS18B20Buses::SetConfigDefaultValues()
 {
   numberOfBuses = 0;
   memset(owBusesPins, 0, MAX_NUMBER_OF_BUSES * 2);
+  for (byte i = 0; i < MAX_NUMBER_OF_BUSES; i++)
+    _ds18b20Buses[i] = NULL;
 
 #if ESP01_PLATFORM
   numberOfBuses = 1;
   owBusesPins[0][0] = 3;
   owBusesPins[0][1] = 0;
 #endif
+
+  ha.protocol = HA_PROTO_DISABLED;
+  ha.tls = false;
+  ha.hostname[0] = 0;
+  ha.uploadPeriod = 60;
+
+  ha.mqtt.type = HA_MQTT_GENERIC_1;
+  ha.mqtt.port = 1883;
+  ha.mqtt.username[0] = 0;
+  ha.mqtt.password[0] = 0;
+  ha.mqtt.generic.baseTopic[0] = 0;
 };
 //------------------------------------------
 //Parse JSON object into configuration properties
@@ -248,6 +536,27 @@ void WebDS18B20Buses::ParseConfigJSON(JsonObject &root)
   JsonArray &obpArray = root[F("obp")];
   obpArray.copyTo(owBusesPins);
 #endif
+
+  if (root[F("haproto")].success())
+    ha.protocol = root[F("haproto")];
+  if (root[F("hatls")].success())
+    ha.tls = root[F("hatls")];
+  if (root[F("hahost")].success())
+    strlcpy(ha.hostname, root[F("hahost")], sizeof(ha.hostname));
+  if (root[F("haupperiod")].success())
+    ha.uploadPeriod = root[F("haupperiod")];
+
+  if (root[F("hamtype")].success())
+    ha.mqtt.type = root[F("hamtype")];
+  if (root[F("hamport")].success())
+    ha.mqtt.port = root[F("hamport")];
+  if (root[F("hamu")].success())
+    strlcpy(ha.mqtt.username, root[F("hamu")], sizeof(ha.mqtt.username));
+  if (root[F("hamp")].success())
+    strlcpy(ha.mqtt.password, root[F("hamp")], sizeof(ha.mqtt.password));
+
+  if (root[F("hamgbt")].success())
+    strlcpy(ha.mqtt.generic.baseTopic, root[F("hamgbt")], sizeof(ha.mqtt.generic.baseTopic));
 };
 //------------------------------------------
 //Parse HTTP POST parameters in request into configuration properties
@@ -308,6 +617,57 @@ bool WebDS18B20Buses::ParseConfigWebRequest(AsyncWebServerRequest *request)
   }
 #endif
 
+  //Parse HA protocol
+  if (request->hasParam(F("haproto"), true))
+    ha.protocol = request->getParam(F("haproto"), true)->value().toInt();
+
+  //if an home Automation protocol has been selected then get common param
+  if (ha.protocol != HA_PROTO_DISABLED)
+  {
+    if (request->hasParam(F("hatls"), true))
+      ha.tls = (request->getParam(F("hatls"), true)->value() == F("on"));
+    else
+      ha.tls = false;
+    if (request->hasParam(F("hahost"), true) && request->getParam(F("hahost"), true)->value().length() < sizeof(ha.hostname))
+      strcpy(ha.hostname, request->getParam(F("hahost"), true)->value().c_str());
+    if (request->hasParam(F("haupperiod"), true))
+      ha.uploadPeriod = request->getParam(F("haupperiod"), true)->value().toInt();
+  }
+
+  //Now get specific param
+  switch (ha.protocol)
+  {
+
+  case HA_PROTO_MQTT:
+
+    if (request->hasParam(F("hamtype"), true))
+      ha.mqtt.type = request->getParam(F("hamtype"), true)->value().toInt();
+    if (request->hasParam(F("hamport"), true))
+      ha.mqtt.port = request->getParam(F("hamport"), true)->value().toInt();
+    if (request->hasParam(F("hamu"), true) && request->getParam(F("hamu"), true)->value().length() < sizeof(ha.mqtt.username))
+      strcpy(ha.mqtt.username, request->getParam(F("hamu"), true)->value().c_str());
+    char tempPassword[64 + 1] = {0};
+    //put MQTT password into temporary one for predefpassword
+    if (request->hasParam(F("hamp"), true) && request->getParam(F("hamp"), true)->value().length() < sizeof(tempPassword))
+      strcpy(tempPassword, request->getParam(F("hamp"), true)->value().c_str());
+    //check for previous password (there is a predefined special password that mean to keep already saved one)
+    if (strcmp_P(tempPassword, appDataPredefPassword))
+      strcpy(ha.mqtt.password, tempPassword);
+
+    switch (ha.mqtt.type)
+    {
+    case HA_MQTT_GENERIC_1:
+    case HA_MQTT_GENERIC_2:
+      if (request->hasParam(F("hamgbt"), true) && request->getParam(F("hamgbt"), true)->value().length() < sizeof(ha.mqtt.generic.baseTopic))
+        strcpy(ha.mqtt.generic.baseTopic, request->getParam(F("hamgbt"), true)->value().c_str());
+
+      if (!ha.hostname[0] || !ha.mqtt.generic.baseTopic[0])
+        ha.protocol = HA_PROTO_DISABLED;
+      break;
+    }
+    break;
+  }
+
   return true;
 };
 //------------------------------------------
@@ -351,6 +711,25 @@ String WebDS18B20Buses::GenerateConfigJSON(bool forSaveFile = false)
   }
 #endif
 
+  gc = gc + F(",\"haproto\":") + ha.protocol;
+  gc = gc + F(",\"hatls\":") + ha.tls;
+  gc = gc + F(",\"hahost\":\"") + ha.hostname + '"';
+  gc = gc + F(",\"haupperiod\":") + ha.uploadPeriod;
+
+  //if for WebPage or protocol selected is MQTT
+  if (!forSaveFile || ha.protocol == HA_PROTO_MQTT)
+  {
+    gc = gc + F(",\"hamtype\":") + ha.mqtt.type;
+    gc = gc + F(",\"hamport\":") + ha.mqtt.port;
+    gc = gc + F(",\"hamu\":\"") + ha.mqtt.username + '"';
+    if (forSaveFile)
+      gc = gc + F(",\"hamp\":\"") + ha.mqtt.password + '"';
+    else
+      gc = gc + F(",\"hamp\":\"") + (__FlashStringHelper *)appDataPredefPassword + '"'; //predefined special password (mean to keep already saved one)
+
+    gc = gc + F(",\"hamgbt\":\"") + ha.mqtt.generic.baseTopic + '"';
+  }
+
   gc += '}';
 
   return gc;
@@ -361,7 +740,17 @@ String WebDS18B20Buses::GenerateStatusJSON()
 {
   String gs('{');
 
-  //TODO Later : Build a Big JSON with all sensor and temperature
+  for (byte i = 0; i < numberOfBuses; i++)
+  {
+    gs = gs + (i ? "," : "") + '"' + i + F("\":");
+
+    gs = gs + _ds18b20Buses[i]->GetAllTempJSON();
+  }
+
+  if (ha.protocol != HA_PROTO_DISABLED)
+    gs = gs + F(",\"lhar\":") + _haSendResult;
+  else
+    gs = gs + F(",\"lhar\":\"NA\"");
 
   gs = gs + '}';
 
@@ -372,22 +761,102 @@ String WebDS18B20Buses::GenerateStatusJSON()
 bool WebDS18B20Buses::AppInit(bool reInit)
 {
 
+  //Clean up MQTT variables
+  if (_pubSubClient)
+  {
+    if (_pubSubClient->connected())
+      _pubSubClient->disconnect();
+    delete _pubSubClient;
+    _pubSubClient = NULL;
+  }
+  if (_wifiClient)
+  {
+    delete _wifiClient;
+    _wifiClient = NULL;
+  }
+  if (_wifiClientSecure)
+  {
+    delete _wifiClientSecure;
+    _wifiClientSecure = NULL;
+  }
+
+  //if MQTT used so build MQTT variables
+  if (ha.protocol == HA_PROTO_MQTT)
+  {
+
+    if (!ha.tls)
+    {
+      _wifiClient = new WiFiClient();
+      _pubSubClient = new PubSubClient(ha.hostname, ha.mqtt.port, *_wifiClient);
+    }
+    else
+    {
+      _wifiClientSecure = new WiFiClientSecure();
+      _pubSubClient = new PubSubClient(ha.hostname, ha.mqtt.port, *_wifiClientSecure);
+    }
+  }
+
+  //cleanup DS18B20Buses
+  for (byte i = 0; i < MAX_NUMBER_OF_BUSES; i++)
+  {
+
+    if (_ds18b20Buses[i])
+    {
+      if (_ds18b20Buses[i]->temperatureList)
+      {
+        if (_ds18b20Buses[i]->temperatureList->romCodes)
+          free(_ds18b20Buses[i]->temperatureList->romCodes);
+        if (_ds18b20Buses[i]->temperatureList->temperatures)
+          free(_ds18b20Buses[i]->temperatureList->temperatures);
+        free(_ds18b20Buses[i]->temperatureList);
+      }
+
+      delete _ds18b20Buses[i];
+      _ds18b20Buses[i] = NULL;
+    }
+  }
+
   _initialized = numberOfBuses > 0;
 
+//Special case because of DS18B20Bus constructor
 #if ESP01_PLATFORM
   Serial.flush();
   delay(5);
   Serial.end();
 #endif
 
+  //create DS18B20 objects
   for (byte i = 0; i < numberOfBuses; i++)
   {
-    DS18B20Bus(owBusesPins[i][0], owBusesPins[i][1]).SetupTempSensors();
+    _ds18b20Buses[i] = new DS18B20Bus(owBusesPins[i][0], owBusesPins[i][1]);
+    _ds18b20Buses[i]->SetupTempSensors();
   }
 
+//Special case because of DS18B20Bus constructor
 #if ESP01_PLATFORM
   Serial.begin(SERIAL_SPEED);
 #endif
+
+  //cleanup Timers
+  if (_timers[1].getNumTimers()) //HA Timer
+    _timers[1].deleteTimer(0);
+  if (_timers[0].getNumTimers()) //temperature Refresh Timer
+    _timers[0].deleteTimer(0);
+
+  //reset _haSendResult
+  _haSendResult = 0;
+
+  //if no HA, then use default period
+  if (ha.protocol == HA_PROTO_DISABLED)
+  {
+    //setup temperature conversion
+    _timers[0].setInterval(1000L * DEFAULT_CONVERT_PERIOD, [this]() { this->ConvertTick(); });
+  }
+  else
+  {
+    _timers[0].setInterval(1000L * ha.uploadPeriod, [this]() { this->ConvertTick(); });
+    _timers[1].setInterval(1000L * ha.uploadPeriod, [this]() { this->UploadTick(); });
+  }
 
   return true;
 };
@@ -433,18 +902,8 @@ void WebDS18B20Buses::AppInitWebServer(AsyncWebServer &server, bool &shouldReboo
       return;
     }
 
-#if ESP01_PLATFORM
-    Serial.flush();
-    delay(5);
-    Serial.end();
-#endif
-
     //list OneWire Temperature sensors
-    request->send(200, F("text/json"), DS18B20Bus(owBusesPins[busNumberPassed][0], owBusesPins[busNumberPassed][1]).GetRomCodeListJSON());
-
-#if ESP01_PLATFORM
-    Serial.begin(SERIAL_SPEED);
-#endif
+    request->send(200, F("text/json"), _ds18b20Buses[busNumberPassed]->GetRomCodeListJSON());
   });
 
   server.on("/getT", HTTP_GET, [this](AsyncWebServerRequest *request) {
@@ -496,18 +955,8 @@ void WebDS18B20Buses::AppInitWebServer(AsyncWebServer &server, bool &shouldReboo
       return;
     }
 
-#if ESP01_PLATFORM
-    Serial.flush();
-    delay(5);
-    Serial.end();
-#endif
-
     //Read Temperature
-    String temperatureJSON = DS18B20Bus(owBusesPins[busNumberPassed][0], owBusesPins[busNumberPassed][1]).GetTempJSON(romCodePassed);
-
-#if ESP01_PLATFORM
-    Serial.begin(SERIAL_SPEED);
-#endif
+    String temperatureJSON = _ds18b20Buses[busNumberPassed]->GetTempJSON(romCodePassed);
 
     if (temperatureJSON.length() > 0)
       request->send(200, F("text/json"), temperatureJSON);
@@ -520,7 +969,12 @@ void WebDS18B20Buses::AppInitWebServer(AsyncWebServer &server, bool &shouldReboo
 //Run for timer
 void WebDS18B20Buses::AppRun()
 {
-  //Nothing to do
+  if (_pubSubClient)
+    _pubSubClient->loop();
+  if (_timers[0].getNumTimers())
+    _timers[0].run();
+  if (_timers[1].getNumTimers())
+    _timers[1].run();
 }
 
 //------------------------------------------
