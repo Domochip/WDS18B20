@@ -1,8 +1,10 @@
 # WirelessDS18B20
 
 This project use an ESP8266 and some DS18B20 sensors on a 1-Wire bus to provide temperatures in JSON format (Jeedom compatible).
+Since version 3.2.1, temperatures can be sent regularly to an MQTT server too.
 
 The global idea of this project is that any system (like Jeedom) that's able to do an HTTP GET request and interpret JSON will get list of DS18B20 ROMcode available on buses or current temperature of a DS18B20 sensor.
+MQTT compatible device will also be able to receive pushed temperature.
 
 ![getList](https://raw.github.com/Domochip/Wireless-DS18B20-Bus/master/img/getL.jpg) ![getTemp](https://raw.github.com/Domochip/Wireless-DS18B20-Bus/master/img/getT.jpg)
 
@@ -67,8 +69,22 @@ WirelessDS18B20 offers you some webpages in order to configure it :
 - **ssid & password** : IDs of your Wifi Network
 - **hostname** : name of ESP on the network
 - **IP,GW,NetMask,DNS1&2** : Fixed IP configuration
+
+![config2 screenshot](https://raw.github.com/Domochip/Wireless-DS18B20-Bus/master/img/config2.png)
+
 - **number of OneWire buses** : number of OneWire buses...
 - **buses pin numbers** : pins for each oneWire buses (2 pins per OW bus)
+
+![config3 screenshot](https://raw.github.com/Domochip/Wireless-DS18B20-Bus/master/img/config3.png)
+
+- **HA Type** : None (HTTP GET only) or MQTT
+- **SSL/TLS** : check if your MQTT server enforce SSL/TLS
+- **Hostname** : IP or DNS name of your MQTT server
+- **Upload Period** : Period in seconds betwwen each MQTT send
+- **MQTT Type** : describe the structure of the topic end
+- **Port** : MQTT Port
+- **Username/Password** : MQTT Username/Password (both are optionnal)
+- **Base Topic** : Prefix of the topic
 
 - `http://IP/fw` allows you to flash a new firmware version :
 
@@ -87,7 +103,7 @@ Usage (answers are in JSON format):
 - `http://IP/getL?bus0` will return list of DS18B20 ROMCodes available on the 1-Wire bus number 0
 - `http://IP/getT?bus0=0A1B2C3D4E5F6071` will return simple JSON with temperature from the sensor
 
-### With Jeedom
+### With Jeedom (HTTP GET Method)
 
 > Memento : Jeedom is an innovative home automation system that can be found at <http://jeedom.com>
 
