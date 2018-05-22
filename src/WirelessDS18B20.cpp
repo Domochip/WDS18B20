@@ -64,7 +64,6 @@ DS18B20Bus::DS18B20Bus(uint8_t pinIn, uint8_t pinOut) : OneWireDualPin(pinIn, pi
 void DS18B20Bus::SetupTempSensors()
 {
 
-  byte i, j;
   byte addr[8];
   byte data[9];
   boolean scratchPadReaded;
@@ -232,10 +231,6 @@ void DS18B20Bus::ReadTemperatures()
 // List DS18X20 sensor ROMCode and return it in JSON list
 String DS18B20Bus::GetRomCodeListJSON()
 {
-
-  bool first = true;
-  uint8_t romCode[8];
-
   //prepare JSON structure
   String grclJSON(F("{\"TemperatureSensorList\": [\r\n"));
 

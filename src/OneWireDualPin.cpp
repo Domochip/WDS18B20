@@ -144,7 +144,6 @@ OneWireDualPin::OneWireDualPin(uint8_t pinIn, uint8_t pinOut)
 uint8_t OneWireDualPin::reset(void)
 {
   IO_REG_TYPE mask = bitmask;
-  volatile IO_REG_TYPE *reg IO_REG_ASM = baseReg;
   uint8_t r;
   uint8_t retries = 125;
 
@@ -177,9 +176,6 @@ uint8_t OneWireDualPin::reset(void)
 //
 void OneWireDualPin::write_bit(uint8_t v)
 {
-  IO_REG_TYPE mask = bitmask;
-  volatile IO_REG_TYPE *reg IO_REG_ASM = baseReg;
-
   if (v & 1) {
     noInterrupts();
     DIRECT_MODE_OUTPUT(baseRegOut, bitmaskOut);	// drive output low
@@ -206,7 +202,6 @@ void OneWireDualPin::write_bit(uint8_t v)
 uint8_t OneWireDualPin::read_bit(void)
 {
   IO_REG_TYPE mask = bitmask;
-  volatile IO_REG_TYPE *reg IO_REG_ASM = baseReg;
   uint8_t r;
 
   noInterrupts();

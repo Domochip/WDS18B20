@@ -3,8 +3,8 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="description" content="$ShortApplicationName$">
-        <title>Domochip $ApplicationName$</title>
+        <meta name="description" content="WDS18B20">
+        <title>Domochip WirelessDS18B20</title>
         
         <link rel="stylesheet" href="pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
         <link rel="stylesheet" href="side-menu.css">
@@ -21,7 +21,7 @@
             <div id="menu">
                 <div class="pure-menu">
                     <div class="pure-menu-heading">Domochip</div>
-                    <div class="pure-menu-heading">$ShortApplicationName$</div>
+                    <div class="pure-menu-heading">WDS18B20</div>
 
                     <ul class="pure-menu-list">
                         <li class="pure-menu-item pure-menu-selected"><a href="./" class="pure-menu-link">Status</a></li>
@@ -49,7 +49,10 @@
                     AP : <span id="ap"></span> (<span id="ai"></span>)<br>
                     Station : <span id="sta"></span> (<span id="stai"></span>)<br>
 
-                    $HTMLContent$
+                            <h2 class="content-subhead">OneWire<span id="l3"><h6 style="display:inline"><b> Loading...</b></h6></span></h2>
+        <div id="AllSensors"></div>
+        <h2 class="content-subhead">Home Automation<span id="l4"><h6 style="display:inline"><b> Loading...</b></h6></span></h2>
+        Last HomeAutomation Result : <span id="lhar"></span><br>
                     
                 </div>
             </div>
@@ -96,7 +99,27 @@
                     $("#l2").html('<h4 style="display:inline;color:red;"><b> Failed</b></h4>');
                 });
 
-                $HTMLScriptInReady$
+                            $.getJSON("/gs1", function(GS1){
+                $.each(GS1,function(k,v){
+                    if(k.length==1 && k.charAt(0)>='0' && k.charAt(0)<='9'){
+                        $("#AllSensors").append("<h3>Bus "+k+"</h3></div>");
+                        $("#AllSensors").append("<div id='bus"+k+"' class='pure-controls'></div>");
+                        
+                        $.each(v,function(romCode,temperature){
+                            $("#bus"+k).append(romCode+" : <a class='pure-button pure-button-primary' href='/getT?bus"+k+"="+romCode+"'>"+temperature+"°C</a><br>");
+                        });
+                    }
+                    else{
+                        $('#'+k).html(v);
+                    }
+                });
+                $("#l3").fadeOut();
+                $("#l4").fadeOut();
+            })
+            .fail(function(){
+                $("#l3").html('<h4 style="display:inline;color:red;"><b> Failed</b></h4>');
+                $("#l4").html('<h4 style="display:inline;color:red;"><b> Failed</b></h4>');
+            });
             });
         </script>
         <script src="side-menu.js"></script>
