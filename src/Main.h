@@ -25,7 +25,7 @@
 #define APPLICATION1_DESC "DomoChip Wireless DS18B20"
 #define APPLICATION1_CLASS WebDS18B20Buses
 
-#define VERSION_NUMBER "3.2.1"
+#define VERSION_NUMBER "3.2.2"
 
 #define DEFAULT_AP_SSID "WirelessDS"
 #define DEFAULT_AP_PSK "PasswordDS"
