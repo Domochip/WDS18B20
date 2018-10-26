@@ -1,0 +1,31 @@
+<div id="applicationName" style="display: none;">WirelessDS18B20</div>
+<div id="shortApplicationName" style="display: none;">WDS18B20</div>
+
+<h2 class="content-subhead">OneWire<span id="l3"><h6 style="display:inline"><b> Loading...</b></h6></span></h2>
+<div id="AllSensors"></div>
+<h2 class="content-subhead">Home Automation<span id="l4"><h6 style="display:inline"><b> Loading...</b></h6></span></h2>
+Last HomeAutomation Result : <span id="lhar"></span><br>
+
+<script>
+    $.getJSON("/gs1", function(GS1){
+        $.each(GS1,function(k,v){
+            if(k.length==1 && k.charAt(0)>='0' && k.charAt(0)<='9'){
+                $("#AllSensors").append("<h3>Bus "+k+"</h3></div>");
+                $("#AllSensors").append("<div id='bus"+k+"' class='pure-controls'></div>");
+                
+                $.each(v,function(romCode,temperature){
+                    $("#bus"+k).append(romCode+" : <a class='pure-button pure-button-primary' href='/getT?bus"+k+"="+romCode+"'>"+temperature+"°C</a><br>");
+                });
+            }
+            else{
+                $('#'+k).html(v);
+            }
+        });
+        $("#l3").fadeOut();
+        $("#l4").fadeOut();
+    })
+    .fail(function(){
+        $("#l3").html('<h4 style="display:inline;color:red;"><b> Failed</b></h4>');
+        $("#l4").html('<h4 style="display:inline;color:red;"><b> Failed</b></h4>');
+    });
+</script>
