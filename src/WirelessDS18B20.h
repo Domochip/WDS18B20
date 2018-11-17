@@ -9,22 +9,21 @@
 #include "base\Utils.h"
 #include "base\Base.h"
 
+const char appDataPredefPassword[] PROGMEM = "ewcXoCt4HHjZUvY1";
+
+
 #include "data\status1.html.gz.h"
 #include "data\config1.html.gz.h"
-#include "data\fw1.html.gz.h"
-#include "data\discover1.html.gz.h"
 
 #include <math.h> //for std::isnan
 #include "OneWireDualPin.h"
 #include <PubSubClient.h>
 #include "SimpleTimer.h"
 
-const char appDataPredefPassword[] PROGMEM = "ewcXoCt4HHjZUvY1";
-
 #define MAX_NUMBER_OF_BUSES 4
-#define DEFAULT_CONVERT_PERIOD 30 //Period in seconds used to refrech sensor tmperature if no MQTT used
+#define DEFAULT_CONVERT_PERIOD 30 //Period in seconds used to refresh sensor tmperature if no MQTT used
 
-//intermediate class that corresponds to a OneWire Bus with DS12B20 sensors
+//intermediate class that corresponds to a OneWire Bus with DS18B20 sensors
 class DS18B20Bus : public OneWireDualPin
 {
 private:

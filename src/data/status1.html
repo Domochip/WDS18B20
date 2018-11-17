@@ -1,9 +1,9 @@
 <div id="applicationName" style="display: none;">WirelessDS18B20</div>
 <div id="shortApplicationName" style="display: none;">WDS18B20</div>
 
-<h2 class="content-subhead">OneWire<span id="l3"><h6 style="display:inline"><b> Loading...</b></h6></span></h2>
+<h2 class="content-subhead">OneWire<span id="l1-1"><h6 style="display:inline"><b> Loading...</b></h6></span></h2>
 <div id="AllSensors"></div>
-<h2 class="content-subhead">Home Automation<span id="l4"><h6 style="display:inline"><b> Loading...</b></h6></span></h2>
+<h2 class="content-subhead">Home Automation<span id="l1-2"><h6 style="display:inline"><b> Loading...</b></h6></span></h2>
 Last HomeAutomation Result : <span id="lhar"></span><br>
 
 <script>
@@ -21,11 +21,11 @@ Last HomeAutomation Result : <span id="lhar"></span><br>
                 $('#'+k).html(v);
             }
         });
-        $("#l3").fadeOut();
-        $("#l4").fadeOut();
+        $("#l1-1").fadeOut();
+        $("#l1-2").fadeOut();
     })
     .fail(function(){
-        $("#l3").html('<h4 style="display:inline;color:red;"><b> Failed</b></h4>');
-        $("#l4").html('<h4 style="display:inline;color:red;"><b> Failed</b></h4>');
+        $("#l1-1").html('<h4 style="display:inline;color:red;"><b> Failed</b></h4>');
+        $("#l1-2").html('<h4 style="display:inline;color:red;"><b> Failed</b></h4>');
     });
 </script>
