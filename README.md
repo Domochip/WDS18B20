@@ -39,16 +39,13 @@ Source code can be compiled for :
 - ESP-01 : Pin usage is fixed like in schematic.
 - other ESP8266 models : 1-Wire buses pins can be configured through the configuration webpage
 
-In order to compile you first need to run PowerShell script which is in htmlToCppHeader folder.
-This one compress and then convert into code (PROGMEM variables) the webpages files (into data folder)
-
 ## Run
 
 ### First Boot
 
 During First Boot, the ESP boot in Access Point Mode to allow you configuration
 
-- Network SSID : `WirelessDS18B20`
+- Network SSID : `WirelessDSXXXX`
 - Password : `PasswordDS`
 - ESP IP : `192.168.4.1`
 
@@ -58,11 +55,11 @@ Connect to this network and then configure it.
 
 WirelessDS18B20 offers you some webpages in order to configure it :
 
-- `http://IP/` return you the current status of the module :
+- `Status` return you the current status of the module :
 
 ![status screenshot](https://raw.github.com/Domochip/Wireless-DS18B20-Bus/master/img/status.png)
 
-- `http://IP/config` allows you to change configuration (Wifi and 1-Wire buses (only non-ESP01)) :
+- `Config` allows you to change configuration (Wifi and 1-Wire buses (on non-ESP01)) :
 
 ![config screenshot](https://raw.github.com/Domochip/Wireless-DS18B20-Bus/master/img/config.png)
 
@@ -86,9 +83,13 @@ WirelessDS18B20 offers you some webpages in order to configure it :
 - **Username/Password** : MQTT Username/Password (both are optionnal)
 - **Base Topic** : Prefix of the topic
 
-- `http://IP/fw` allows you to flash a new firmware version :
+- `Firmware` allows you to flash a new firmware version :
 
 ![firmware screenshot](https://raw.github.com/Domochip/Wireless-DS18B20-Bus/master/img/firmware.png)
+
+- `Discover` allows you to find all DomoChip devices on your network :
+
+![discover screenshot](https://raw.github.com/Domochip/Wireless-DS18B20-Bus/master/img/discover.png)
 
 ### Rescue Mode
 
@@ -132,7 +133,7 @@ Then set it up with :
 - command name : Temperature
 - script type : JSON
 - request : Temperature (JSON tag name)
-- URL : `http://**IP**/getTemp?bus=**0**&ROMCode=**0A1B2C3D4E5F6071**`
+- URL : `http://**IP**/getT?bus**0**=**0A1B2C3D4E5F6071**`
 - Unit : °C
 
 ![Script Command Config](https://raw.github.com/Domochip/Wireless-DS18B20-Bus/master/img/JeedomScriptCmdConfig.png)
