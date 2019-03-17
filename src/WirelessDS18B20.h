@@ -11,7 +11,6 @@
 
 const char appDataPredefPassword[] PROGMEM = "ewcXoCt4HHjZUvY1";
 
-
 #include "data\status1.html.gz.h"
 #include "data\config1.html.gz.h"
 
@@ -20,8 +19,10 @@ const char appDataPredefPassword[] PROGMEM = "ewcXoCt4HHjZUvY1";
 #include <PubSubClient.h>
 #include "SimpleTimer.h"
 
-#define MAX_NUMBER_OF_BUSES 4
 #define DEFAULT_CONVERT_PERIOD 30 //Period in seconds used to refresh sensor tmperature if no MQTT used
+
+#define ONEWIRE_PIN_IN D5
+#define ONEWIRE_PIN_OUT D6
 
 //intermediate class that corresponds to a OneWire Bus with DS18B20 sensors
 class DS18B20Bus : public OneWireDualPin
@@ -54,7 +55,7 @@ public:
 };
 
 //Real Application class
-class WebDS18B20Buses : public Application
+class WebDS18B20Bus : public Application
 {
 private:
 #define HA_MQTT_GENERIC_1 0 //separated level topic (/$romcode$/temperature)
@@ -84,10 +85,7 @@ private:
     MQTT mqtt;
   } HomeAutomation;
 
-  byte numberOfBuses = 0;
-  uint8_t owBusesPins[MAX_NUMBER_OF_BUSES][2];
-
-  DS18B20Bus *_ds18b20Buses[MAX_NUMBER_OF_BUSES];
+  DS18B20Bus *_ds18b20Bus;
 
   HomeAutomation ha;
   int _haSendResult = 0;
@@ -104,18 +102,18 @@ private:
   void UploadTick();
 
   void SetConfigDefaultValues();
-  void ParseConfigJSON(JsonObject &root);
+  void ParseConfigJSON(DynamicJsonDocument &doc);
   bool ParseConfigWebRequest(AsyncWebServerRequest *request);
   String GenerateConfigJSON(bool forSaveFile);
   String GenerateStatusJSON();
   bool AppInit(bool reInit);
-  const uint8_t* GetHTMLContent(WebPageForPlaceHolder wp);
+  const uint8_t *GetHTMLContent(WebPageForPlaceHolder wp);
   size_t GetHTMLContentSize(WebPageForPlaceHolder wp);
   void AppInitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pauseApplication);
   void AppRun();
 
 public:
-  WebDS18B20Buses(char appId, String fileName);
+  WebDS18B20Bus(char appId, String fileName);
 };
 
 #endif

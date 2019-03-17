@@ -1,5 +1,4 @@
 #include <ESP8266WiFi.h>
-#include <ESP8266HTTPClient.h>
 
 #include "WirelessDS18B20.h"
 
@@ -68,12 +67,6 @@ void DS18B20Bus::SetupTempSensors()
   byte data[9];
   boolean scratchPadReaded;
 
-#if ESP01_PLATFORM
-  Serial.flush();
-  delay(5);
-  Serial.end();
-#endif
-
   //while we find some devices
   while (search(addr))
   {
@@ -103,27 +96,14 @@ void DS18B20Bus::SetupTempSensors()
       CopyScratchPad(addr);
     }
   }
-#if ESP01_PLATFORM
-  Serial.begin(SERIAL_SPEED);
-#endif
 }
 //------------------------------------------
 // DS18X20 Start Temperature conversion
 void DS18B20Bus::StartConvertT()
 {
-#if ESP01_PLATFORM
-  Serial.flush();
-  delay(5);
-  Serial.end();
-#endif
-
   reset();
   skip();
   write(0x44); // start conversion
-
-#if ESP01_PLATFORM
-  Serial.begin(SERIAL_SPEED);
-#endif
 }
 //------------------------------------------
 // DS18X20 Read Temperatures from all sensors
@@ -133,12 +113,6 @@ void DS18B20Bus::ReadTemperatures()
   TemperatureList *tempList = new TemperatureList();
 
   uint8_t romCode[8];
-
-#if ESP01_PLATFORM
-  Serial.flush();
-  delay(5);
-  Serial.end();
-#endif
 
   //list all romCodes
   reset_search();
@@ -207,10 +181,6 @@ void DS18B20Bus::ReadTemperatures()
       tempList->temperatures[i] = (float)raw / 16.0;
     }
   }
-
-#if ESP01_PLATFORM
-  Serial.begin(SERIAL_SPEED);
-#endif
 
   //Our new value list is ready
   //switch to make it available
@@ -345,7 +315,7 @@ String DS18B20Bus::GetAllTempJSON()
 //----------------------------------------------------------------------
 //------------------------------------------
 // return True if s contain only hexadecimal figure
-boolean WebDS18B20Buses::isROMCodeString(const char *s)
+boolean WebDS18B20Bus::isROMCodeString(const char *s)
 {
 
   if (strlen(s) != 16)
@@ -360,24 +330,20 @@ boolean WebDS18B20Buses::isROMCodeString(const char *s)
 
 //------------------------------------------
 // Execute code to start temperature conversion of all sensors
-void WebDS18B20Buses::ConvertTick()
+void WebDS18B20Bus::ConvertTick()
 {
-  //For all Buses
-  for (byte busNumber = 0; busNumber < numberOfBuses; busNumber++)
-  {
-    _ds18b20Buses[busNumber]->StartConvertT();
-  }
+  Serial.println(F("ConvertTick"));
+
+  //StartConvert
+  _ds18b20Bus->StartConvertT();
   delay(800);
-  //For all Buses
-  for (byte busNumber = 0; busNumber < numberOfBuses; busNumber++)
-  {
-    _ds18b20Buses[busNumber]->ReadTemperatures();
-  }
+  //ReadTemp
+  _ds18b20Bus->ReadTemperatures();
 }
 
 //------------------------------------------
 // Execute code to upload temperature to MQTT if enable
-void WebDS18B20Buses::UploadTick()
+void WebDS18B20Bus::UploadTick()
 {
   //if Home Automation upload not enabled then return
   if (ha.protocol == HA_PROTO_DISABLED)
@@ -426,7 +392,7 @@ void WebDS18B20Buses::UploadTick()
         completeTopic = ha.mqtt.generic.baseTopic;
 
         //check for final slash
-        if (completeTopic.length() && completeTopic.charAt(completeTopic.length()-1) != '/')
+        if (completeTopic.length() && completeTopic.charAt(completeTopic.length() - 1) != '/')
           completeTopic += '/';
 
         //complete the topic
@@ -436,7 +402,7 @@ void WebDS18B20Buses::UploadTick()
         completeTopic = ha.mqtt.generic.baseTopic;
 
         //check for final slash
-        if (completeTopic.length() && completeTopic.charAt(completeTopic.length()-1) != '/')
+        if (completeTopic.length() && completeTopic.charAt(completeTopic.length() - 1) != '/')
           completeTopic += '/';
 
         //complete the topic
@@ -455,36 +421,27 @@ void WebDS18B20Buses::UploadTick()
         completeTopic.replace(F("$model$"), APPLICATION1_NAME);
 
       char romCodeA[17] = {0};
-      char busNumberA[2] = {0, 0};
 
-      //For all Buses
-      for (byte busNumber = 0; busNumber < numberOfBuses; busNumber++)
+      if (_ds18b20Bus->temperatureList) //if there is a list
       {
-        if (_ds18b20Buses[busNumber]->temperatureList) //if there is a list for this bus
+        //for each sensors found
+        for (byte i = 0; i < _ds18b20Bus->temperatureList->nbSensors; i++)
         {
-          //for each sensors found
-          for (byte i = 0; i < _ds18b20Buses[busNumber]->temperatureList->nbSensors; i++)
+          //if temperature is OK
+          if (!std::isnan(_ds18b20Bus->temperatureList->temperatures[i]))
           {
-            //if temperature is OK
-            if (!std::isnan(_ds18b20Buses[busNumber]->temperatureList->temperatures[i]))
-            {
 
-              //convert romCode to text in oneshot
-              sprintf_P(romCodeA, PSTR("%02x%02x%02x%02x%02x%02x%02x%02x"), _ds18b20Buses[busNumber]->temperatureList->romCodes[i][0], _ds18b20Buses[busNumber]->temperatureList->romCodes[i][1], _ds18b20Buses[busNumber]->temperatureList->romCodes[i][2], _ds18b20Buses[busNumber]->temperatureList->romCodes[i][3], _ds18b20Buses[busNumber]->temperatureList->romCodes[i][4], _ds18b20Buses[busNumber]->temperatureList->romCodes[i][5], _ds18b20Buses[busNumber]->temperatureList->romCodes[i][6], _ds18b20Buses[busNumber]->temperatureList->romCodes[i][7]);
+            //convert romCode to text in oneshot
+            sprintf_P(romCodeA, PSTR("%02x%02x%02x%02x%02x%02x%02x%02x"), _ds18b20Bus->temperatureList->romCodes[i][0], _ds18b20Bus->temperatureList->romCodes[i][1], _ds18b20Bus->temperatureList->romCodes[i][2], _ds18b20Bus->temperatureList->romCodes[i][3], _ds18b20Bus->temperatureList->romCodes[i][4], _ds18b20Bus->temperatureList->romCodes[i][5], _ds18b20Bus->temperatureList->romCodes[i][6], _ds18b20Bus->temperatureList->romCodes[i][7]);
 
-              //copy completeTopic in order to "complete" it ...
-              thisSensorTopic = completeTopic;
+            //copy completeTopic in order to "complete" it ...
+            thisSensorTopic = completeTopic;
 
-              if (thisSensorTopic.indexOf(F("$romcode$")) != -1)
-                thisSensorTopic.replace(F("$romcode$"), romCodeA);
+            if (thisSensorTopic.indexOf(F("$romcode$")) != -1)
+              thisSensorTopic.replace(F("$romcode$"), romCodeA);
 
-              busNumberA[0] = busNumber + '0';
-              if (thisSensorTopic.indexOf(F("$bus$")) != -1)
-                thisSensorTopic.replace(F("$bus$"), busNumberA);
-
-              //send
-              _haSendResult = _pubSubClient->publish(thisSensorTopic.c_str(), String(_ds18b20Buses[busNumber]->temperatureList->temperatures[i], 2).c_str());
-            }
+            //send
+            _haSendResult = _pubSubClient->publish(thisSensorTopic.c_str(), String(_ds18b20Bus->temperatureList->temperatures[i], 2).c_str());
           }
         }
       }
@@ -494,18 +451,9 @@ void WebDS18B20Buses::UploadTick()
 
 //------------------------------------------
 //Used to initialize configuration properties to default values
-void WebDS18B20Buses::SetConfigDefaultValues()
+void WebDS18B20Bus::SetConfigDefaultValues()
 {
-  numberOfBuses = 0;
-  memset(owBusesPins, 0, MAX_NUMBER_OF_BUSES * 2);
-  for (byte i = 0; i < MAX_NUMBER_OF_BUSES; i++)
-    _ds18b20Buses[i] = NULL;
-
-#if ESP01_PLATFORM
-  numberOfBuses = 1;
-  owBusesPins[0][0] = 3;
-  owBusesPins[0][1] = 0;
-#endif
+  _ds18b20Bus = NULL;
 
   ha.protocol = HA_PROTO_DISABLED;
   ha.tls = false;
@@ -520,97 +468,34 @@ void WebDS18B20Buses::SetConfigDefaultValues()
 };
 //------------------------------------------
 //Parse JSON object into configuration properties
-void WebDS18B20Buses::ParseConfigJSON(JsonObject &root)
+void WebDS18B20Bus::ParseConfigJSON(DynamicJsonDocument &doc)
 {
-#if ESP01_PLATFORM
-  numberOfBuses = 1;
-  owBusesPins[0][0] = 3;
-  owBusesPins[0][1] = 0;
-#else
-  numberOfBuses = root[F("n")];
-  JsonArray &obpArray = root[F("obp")];
-  obpArray.copyTo(owBusesPins);
-#endif
 
-  if (root[F("haproto")].success())
-    ha.protocol = root[F("haproto")];
-  if (root[F("hatls")].success())
-    ha.tls = root[F("hatls")];
-  if (root[F("hahost")].success())
-    strlcpy(ha.hostname, root[F("hahost")], sizeof(ha.hostname));
-  if (root[F("haupperiod")].success())
-    ha.uploadPeriod = root[F("haupperiod")];
+  if (!doc[F("haproto")].isNull())
+    ha.protocol = doc[F("haproto")];
+  if (!doc[F("hatls")].isNull())
+    ha.tls = doc[F("hatls")];
+  if (!doc[F("hahost")].isNull())
+    strlcpy(ha.hostname, doc[F("hahost")], sizeof(ha.hostname));
+  if (!doc[F("haupperiod")].isNull())
+    ha.uploadPeriod = doc[F("haupperiod")];
 
-  if (root[F("hamtype")].success())
-    ha.mqtt.type = root[F("hamtype")];
-  if (root[F("hamport")].success())
-    ha.mqtt.port = root[F("hamport")];
-  if (root[F("hamu")].success())
-    strlcpy(ha.mqtt.username, root[F("hamu")], sizeof(ha.mqtt.username));
-  if (root[F("hamp")].success())
-    strlcpy(ha.mqtt.password, root[F("hamp")], sizeof(ha.mqtt.password));
+  if (!doc[F("hamtype")].isNull())
+    ha.mqtt.type = doc[F("hamtype")];
+  if (!doc[F("hamport")].isNull())
+    ha.mqtt.port = doc[F("hamport")];
+  if (!doc[F("hamu")].isNull())
+    strlcpy(ha.mqtt.username, doc[F("hamu")], sizeof(ha.mqtt.username));
+  if (!doc[F("hamp")].isNull())
+    strlcpy(ha.mqtt.password, doc[F("hamp")], sizeof(ha.mqtt.password));
 
-  if (root[F("hamgbt")].success())
-    strlcpy(ha.mqtt.generic.baseTopic, root[F("hamgbt")], sizeof(ha.mqtt.generic.baseTopic));
+  if (!doc[F("hamgbt")].isNull())
+    strlcpy(ha.mqtt.generic.baseTopic, doc[F("hamgbt")], sizeof(ha.mqtt.generic.baseTopic));
 };
 //------------------------------------------
 //Parse HTTP POST parameters in request into configuration properties
-bool WebDS18B20Buses::ParseConfigWebRequest(AsyncWebServerRequest *request)
+bool WebDS18B20Bus::ParseConfigWebRequest(AsyncWebServerRequest *request)
 {
-
-#if ESP01_PLATFORM
-  numberOfBuses = 1;
-  owBusesPins[0][0] = 3;
-  owBusesPins[0][1] = 0;
-
-#else
-
-  char tempNumberOfBusesA[2]; //only one char
-  if (!request->hasParam(F("n"), true))
-  {
-    request->send(400, F("text/html"), F("Missing number of OW Buses"));
-    return false;
-  }
-
-  numberOfBuses = request->getParam(F("n"), true)->value().toInt();
-  if (numberOfBuses < 1 || numberOfBuses > MAX_NUMBER_OF_BUSES)
-  {
-    request->send(400, F("text/html"), F("Incorrect number of OW Buses"));
-    return false;
-  }
-  char busPinName[4] = {'b', '0', 'i', 0};
-  for (byte i = 0; i < numberOfBuses; i++)
-  {
-    char busPinA[4] = {0};
-    busPinName[1] = '0' + i;
-    busPinName[2] = 'i';
-    if (!request->hasParam(busPinName, true))
-    {
-      request->send(400, F("text/html"), F("A PinIn value is missing"));
-      return false;
-    }
-    if (request->getParam(busPinName, true)->value().toInt() == 0 && request->getParam(busPinName, true)->value() != "0")
-    {
-      request->send(400, F("text/html"), F("A PinIn value is incorrect"));
-      return false;
-    }
-    owBusesPins[i][0] = request->getParam(busPinName, true)->value().toInt();
-
-    busPinA[0] = 0;
-    busPinName[2] = 'o';
-    if (!request->hasParam(busPinName, true))
-    {
-      request->send(400, F("text/html"), F("A PinOut value is missing"));
-      return false;
-    }
-    if (request->getParam(busPinName, true)->value().toInt() == 0 && request->getParam(busPinName, true)->value() != "0")
-    {
-      request->send(400, F("text/html"), F("A PinOut value is incorrect"));
-      return false;
-    }
-    owBusesPins[i][1] = request->getParam(busPinName, true)->value().toInt();
-  }
-#endif
 
   //Parse HA protocol
   if (request->hasParam(F("haproto"), true))
@@ -667,46 +552,11 @@ bool WebDS18B20Buses::ParseConfigWebRequest(AsyncWebServerRequest *request)
 };
 //------------------------------------------
 //Generate JSON from configuration properties
-String WebDS18B20Buses::GenerateConfigJSON(bool forSaveFile = false)
+String WebDS18B20Bus::GenerateConfigJSON(bool forSaveFile = false)
 {
   String gc('{');
 
-#if ESP01_PLATFORM
-  if (!forSaveFile)
-  {
-    gc += F("\"e\":1,\"n\":1,\"nm\":1,\"b0i\":3,\"b0o\":0");
-  }
-  else
-  {
-    gc += F("\"n\":1,\"obp\":[[3,0]]");
-  }
-
-#else
-  gc = gc + F("\"n\":") + numberOfBuses;
-
-  if (!forSaveFile)
-  {
-    gc = gc + F(",\"nm\":") + MAX_NUMBER_OF_BUSES;
-    for (byte i = 0; i < numberOfBuses; i++)
-    {
-      gc = gc + F(",\"b") + i + F("i\":") + owBusesPins[i][0];
-      gc = gc + F(",\"b") + i + F("o\":") + owBusesPins[i][1];
-    }
-  }
-  else
-  {
-    gc = gc + F(",\"obp\":[");
-    for (byte i = 0; i < numberOfBuses; i++)
-    {
-      if (i)
-        gc += ',';
-      gc = gc + '[' + owBusesPins[i][0] + ',' + owBusesPins[i][1] + ']';
-    }
-    gc += ']';
-  }
-#endif
-
-  gc = gc + F(",\"haproto\":") + ha.protocol;
+  gc = gc + F("\"haproto\":") + ha.protocol;
   gc = gc + F(",\"hatls\":") + ha.tls;
   gc = gc + F(",\"hahost\":\"") + ha.hostname + '"';
   gc = gc + F(",\"haupperiod\":") + ha.uploadPeriod;
@@ -731,16 +581,12 @@ String WebDS18B20Buses::GenerateConfigJSON(bool forSaveFile = false)
 };
 //------------------------------------------
 //Generate JSON of application status
-String WebDS18B20Buses::GenerateStatusJSON()
+String WebDS18B20Bus::GenerateStatusJSON()
 {
   String gs('{');
 
-  for (byte i = 0; i < numberOfBuses; i++)
-  {
-    gs = gs + (i ? "," : "") + '"' + i + F("\":");
-
-    gs = gs + _ds18b20Buses[i]->GetAllTempJSON();
-  }
+  gs = gs + F("\"at\":");
+  gs = gs + _ds18b20Bus->GetAllTempJSON();
 
   if (ha.protocol != HA_PROTO_DISABLED)
     gs = gs + F(",\"lhar\":") + _haSendResult;
@@ -753,7 +599,7 @@ String WebDS18B20Buses::GenerateStatusJSON()
 };
 //------------------------------------------
 //code to execute during initialization and reinitialization of the app
-bool WebDS18B20Buses::AppInit(bool reInit)
+bool WebDS18B20Bus::AppInit(bool reInit)
 {
 
   //Clean up MQTT variables
@@ -792,45 +638,29 @@ bool WebDS18B20Buses::AppInit(bool reInit)
   }
 
   //cleanup DS18B20Buses
-  for (byte i = 0; i < MAX_NUMBER_OF_BUSES; i++)
-  {
 
-    if (_ds18b20Buses[i])
+  _initialized = false;
+
+  if (_ds18b20Bus)
+  {
+    if (_ds18b20Bus->temperatureList)
     {
-      if (_ds18b20Buses[i]->temperatureList)
-      {
-        if (_ds18b20Buses[i]->temperatureList->romCodes)
-          free(_ds18b20Buses[i]->temperatureList->romCodes);
-        if (_ds18b20Buses[i]->temperatureList->temperatures)
-          free(_ds18b20Buses[i]->temperatureList->temperatures);
-        free(_ds18b20Buses[i]->temperatureList);
-      }
-
-      delete _ds18b20Buses[i];
-      _ds18b20Buses[i] = NULL;
+      if (_ds18b20Bus->temperatureList->romCodes)
+        free(_ds18b20Bus->temperatureList->romCodes);
+      if (_ds18b20Bus->temperatureList->temperatures)
+        free(_ds18b20Bus->temperatureList->temperatures);
+      free(_ds18b20Bus->temperatureList);
     }
+
+    delete _ds18b20Bus;
+    _ds18b20Bus = NULL;
   }
 
-  _initialized = numberOfBuses > 0;
+  //create DS18B20Bus object
+  _ds18b20Bus = new DS18B20Bus(ONEWIRE_PIN_IN, ONEWIRE_PIN_OUT);
+  _ds18b20Bus->SetupTempSensors();
 
-//Special case because of DS18B20Bus constructor
-#if ESP01_PLATFORM
-  Serial.flush();
-  delay(5);
-  Serial.end();
-#endif
-
-  //create DS18B20 objects
-  for (byte i = 0; i < numberOfBuses; i++)
-  {
-    _ds18b20Buses[i] = new DS18B20Bus(owBusesPins[i][0], owBusesPins[i][1]);
-    _ds18b20Buses[i]->SetupTempSensors();
-  }
-
-//Special case because of DS18B20Bus constructor
-#if ESP01_PLATFORM
-  Serial.begin(SERIAL_SPEED);
-#endif
+  _initialized = true;
 
   //cleanup Timers
   if (_timers[1].getNumTimers()) //HA Timer
@@ -840,6 +670,9 @@ bool WebDS18B20Buses::AppInit(bool reInit)
 
   //reset _haSendResult
   _haSendResult = 0;
+
+  //Run a first Convert
+  ConvertTick();
 
   //if no HA, then use default period
   if (ha.protocol == HA_PROTO_DISABLED)
@@ -857,44 +690,44 @@ bool WebDS18B20Buses::AppInit(bool reInit)
 };
 //------------------------------------------
 //Return HTML Code to insert into Status Web page
-const uint8_t* WebDS18B20Buses::GetHTMLContent(WebPageForPlaceHolder wp){
-      switch(wp){
-    case status:
-      return (const uint8_t*) status1htmlgz;
-      break;
-    case config:
-      return (const uint8_t*) config1htmlgz;
-      break;
-    default:
-      return nullptr;
-      break;
+const uint8_t *WebDS18B20Bus::GetHTMLContent(WebPageForPlaceHolder wp)
+{
+  switch (wp)
+  {
+  case status:
+    return (const uint8_t *)status1htmlgz;
+    break;
+  case config:
+    return (const uint8_t *)config1htmlgz;
+    break;
+  default:
+    return nullptr;
+    break;
   };
   return nullptr;
 };
 //and his Size
-size_t WebDS18B20Buses::GetHTMLContentSize(WebPageForPlaceHolder wp){
-  switch(wp){
-    case status:
-      return sizeof(status1htmlgz);
-      break;
-    case config:
-      return sizeof(config1htmlgz);
-      break;
-    default:
-      return 0;
-      break;
+size_t WebDS18B20Bus::GetHTMLContentSize(WebPageForPlaceHolder wp)
+{
+  switch (wp)
+  {
+  case status:
+    return sizeof(status1htmlgz);
+    break;
+  case config:
+    return sizeof(config1htmlgz);
+    break;
+  default:
+    return 0;
+    break;
   };
   return 0;
 };
 //------------------------------------------
 //code to register web request answer to the web server
-void WebDS18B20Buses::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pauseApplication)
+void WebDS18B20Bus::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pauseApplication)
 {
   server.on("/getL", HTTP_GET, [this](AsyncWebServerRequest *request) {
-
-    bool requestPassed = false;
-    byte busNumberPassed = 0;
-
     //check DS18B20Buses is initialized
     if (!_initialized)
     {
@@ -902,40 +735,12 @@ void WebDS18B20Buses::AppInitWebServer(AsyncWebServer &server, bool &shouldReboo
       return;
     }
 
-    char paramName[5] = {'b', 'u', 's', '0', 0};
-    byte i = 0;
-
-    //for each bus numbers
-    while (i < numberOfBuses && !requestPassed)
-    {
-      //build paramName
-      paramName[3] = '0' + i;
-
-      //check bus param is there
-      if (request->hasParam(paramName))
-      {
-        busNumberPassed = i;
-        requestPassed = true;
-      }
-      i++;
-    }
-
-    //if no correct request passed
-    if (!requestPassed)
-    {
-      //answer with error and return
-      request->send(400, F("text/html"), F("No valid request received"));
-      return;
-    }
-
     //list OneWire Temperature sensors
-    request->send(200, F("text/json"), _ds18b20Buses[busNumberPassed]->GetRomCodeListJSON());
+    request->send(200, F("text/json"), _ds18b20Bus->GetRomCodeListJSON());
   });
 
   server.on("/getT", HTTP_GET, [this](AsyncWebServerRequest *request) {
-
     bool requestPassed = false;
-    byte busNumberPassed = 0;
     byte romCodePassed[8];
 
     //check DS18B20Buses is initialized
@@ -945,32 +750,22 @@ void WebDS18B20Buses::AppInitWebServer(AsyncWebServer &server, bool &shouldReboo
       return;
     }
 
-    char paramName[5] = {'b', 'u', 's', '0', 0};
-    byte i = 0;
+    char paramName[8] = "ROMCode";
 
-    //for each bus numbers
-    while (i < numberOfBuses && !requestPassed)
+    //check ROMCode param is there
+    if (request->hasParam(paramName))
     {
-      //build paramName
-      paramName[3] = '0' + i;
 
-      //check bus param is there
-      if (request->hasParam(paramName))
+      //get ROMCode
+      const char *ROMCodeA = request->getParam(paramName)->value().c_str();
+      //if it's a correct ROMCode
+      if (isROMCodeString(ROMCodeA))
       {
-
-        //get ROMCode
-        const char *ROMCodeA = request->getParam(paramName)->value().c_str();
-        //if it's a correct ROMCode
-        if (isROMCodeString(ROMCodeA))
-        {
-          //Parse it
-          for (byte j = 0; j < 8; j++)
-            romCodePassed[j] = (Utils::AsciiToHex(ROMCodeA[j * 2]) * 0x10) + Utils::AsciiToHex(ROMCodeA[(j * 2) + 1]);
-          busNumberPassed = i;
-          requestPassed = true;
-        }
+        //Parse it
+        for (byte j = 0; j < 8; j++)
+          romCodePassed[j] = (Utils::AsciiToHex(ROMCodeA[j * 2]) * 0x10) + Utils::AsciiToHex(ROMCodeA[(j * 2) + 1]);
+        requestPassed = true;
       }
-      i++;
     }
 
     //if no correct request passed
@@ -982,7 +777,7 @@ void WebDS18B20Buses::AppInitWebServer(AsyncWebServer &server, bool &shouldReboo
     }
 
     //Read Temperature
-    String temperatureJSON = _ds18b20Buses[busNumberPassed]->GetTempJSON(romCodePassed);
+    String temperatureJSON = _ds18b20Bus->GetTempJSON(romCodePassed);
 
     if (temperatureJSON.length() > 0)
       request->send(200, F("text/json"), temperatureJSON);
@@ -993,7 +788,7 @@ void WebDS18B20Buses::AppInitWebServer(AsyncWebServer &server, bool &shouldReboo
 
 //------------------------------------------
 //Run for timer
-void WebDS18B20Buses::AppRun()
+void WebDS18B20Bus::AppRun()
 {
   if (_pubSubClient)
     _pubSubClient->loop();
@@ -1005,7 +800,7 @@ void WebDS18B20Buses::AppRun()
 
 //------------------------------------------
 //Constructor
-WebDS18B20Buses::WebDS18B20Buses(char appId, String appName) : Application(appId, appName)
+WebDS18B20Bus::WebDS18B20Bus(char appId, String appName) : Application(appId, appName)
 {
   //Nothing to do
 }

@@ -9,12 +9,9 @@ Last HomeAutomation Result : <span id="lhar"></span><br>
 <script>
     $.getJSON("/gs1", function(GS1){
         $.each(GS1,function(k,v){
-            if(k.length==1 && k.charAt(0)>='0' && k.charAt(0)<='9'){
-                $("#AllSensors").append("<h3>Bus "+k+"</h3></div>");
-                $("#AllSensors").append("<div id='bus"+k+"' class='pure-controls'></div>");
-                
+            if(k=="at"){
                 $.each(v,function(romCode,temperature){
-                    $("#bus"+k).append(romCode+" : <a class='pure-button pure-button-primary' href='/getT?bus"+k+"="+romCode+"'>"+temperature+"°C</a><br>");
+                    $("#AllSensors").append(romCode+" : <a class='pure-button pure-button-primary' href='/getT?ROMCode="+romCode+"'>"+temperature+"°C</a><br>");
                 });
             }
             else{
