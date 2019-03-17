@@ -10,8 +10,8 @@
 //http://IP/config
 //http://IP/fw
 //DS18B20 Request Web Pages
-//http://IP/getL?bus0
-//http://IP/getT?bus0=0A1B2C3D4E5F6071
+//http://IP/getL
+//http://IP/getT?ROMCode=0A1B2C3D4E5F6071
 
 //include Application header file
 #include "WirelessDS18B20.h"
