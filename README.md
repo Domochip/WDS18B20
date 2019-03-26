@@ -36,7 +36,13 @@ All files are inside schematic subfolder and has been designed with KiCad
 
 ### Code/Compile
 
-Source code can be compiled using VisualStudioCode/Platformio
+Source code can be compiled using VisualStudioCode/Platformio and flashed onto a D1 Mini
+
+### Print your box
+
+Box project (Fusion 360) can be found into `box` folder
+
+![WirelessDS18B20 Box](https://raw.github.com/Domochip/WirelessDS18B20/master/img/box.jpg)
 
 ## Run
 
