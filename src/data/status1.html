@@ -7,22 +7,26 @@
 Last HomeAutomation Result : <span id="lhar"></span><br>
 
 <script>
-    $.getJSON("/gs1", function(GS1){
-        $.each(GS1,function(k,v){
-            if(k=="at"){
-                $.each(v,function(romCode,temperature){
-                    $("#AllSensors").append(romCode+" : <a class='pure-button pure-button-primary' href='/getT?ROMCode="+romCode+"'>"+temperature+"°C</a><br>");
-                });
+    getJSON("/gs1",
+        function(GS1){
+            for(k in GS1){
+                if(k=="at"){
+                    var allTemp=GS1[k];
+                    for(romCode in allTemp){
+                        $("#AllSensors").innerHTML+=romCode+" : <a class='pure-button pure-button-primary' href='/getT?ROMCode="+romCode+"'>"+allTemp[romCode]+"°C</a><br>"
+                    }
+                }
+                else{
+                    if((e = $('#'+k)) != undefined) e.innerHTML = GS1[k];
+                }
             }
-            else{
-                $('#'+k).html(v);
-            }
-        });
-        $("#l1-1").fadeOut();
-        $("#l1-2").fadeOut();
-    })
-    .fail(function(){
-        $("#l1-1").html('<h4 style="display:inline;color:red;"><b> Failed</b></h4>');
-        $("#l1-2").html('<h4 style="display:inline;color:red;"><b> Failed</b></h4>');
-    });
+
+            fadeOut($("#l1-1"));
+            fadeOut($("#l1-2"));
+        },
+        function(){
+            $("#l1-1").innerHTML='<h4 style="display:inline;color:red;"><b> Failed</b></h4>';
+            $("#l1-2").innerHTML='<h4 style="display:inline;color:red;"><b> Failed</b></h4>';
+        }
+    );
 </script>

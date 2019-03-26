@@ -20,7 +20,7 @@
 #define APPLICATION1_DESC "DomoChip Wireless DS18B20"
 #define APPLICATION1_CLASS WebDS18B20Bus
 
-#define VERSION_NUMBER "3.2.4"
+#define VERSION_NUMBER "3.2.5"
 
 #define DEFAULT_AP_SSID "WirelessDS"
 #define DEFAULT_AP_PSK "PasswordDS"
@@ -32,7 +32,6 @@
 #define SERIAL_SPEED 115200
 
 //Choose Pin used to boot in Rescue Mode
-//For ESP-01, Pin 2 is used
 //#define RESCUE_BTN_PIN 2
 
 //construct Version text
