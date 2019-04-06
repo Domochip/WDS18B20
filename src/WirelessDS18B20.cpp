@@ -332,8 +332,6 @@ boolean WebDS18B20Bus::isROMCodeString(const char *s)
 // Execute code to start temperature conversion of all sensors
 void WebDS18B20Bus::ConvertTick()
 {
-  Serial.println(F("ConvertTick"));
-
   //StartConvert
   _ds18b20Bus->StartConvertT();
   delay(800);
@@ -342,54 +340,54 @@ void WebDS18B20Bus::ConvertTick()
 }
 
 //------------------------------------------
+// subscribe to MQTT topic after connection
+bool WebDS18B20Bus::MqttConnect()
+{
+
+  if (!WiFi.isConnected())
+    return false;
+
+  char sn[9];
+  sprintf_P(sn, PSTR("%08x"), ESP.getChipId());
+
+  //generate clientID
+  String clientID(F(APPLICATION1_NAME));
+  clientID += sn;
+
+  //Connect
+  if (!_ha.mqtt.username[0])
+    _mqttClient.connect(clientID.c_str());
+  else
+    _mqttClient.connect(clientID.c_str(), _ha.mqtt.username, _ha.mqtt.password);
+
+  if (_mqttClient.connected())
+  {
+    //Subscribe to needed topic
+  }
+
+  return _mqttClient.connected();
+}
+
+//------------------------------------------
 // Execute code to upload temperature to MQTT if enable
-void WebDS18B20Bus::UploadTick()
+void WebDS18B20Bus::PublishTick()
 {
   //if Home Automation upload not enabled then return
-  if (ha.protocol == HA_PROTO_DISABLED)
+  if (_ha.protocol == HA_PROTO_DISABLED)
     return;
 
   //----- MQTT Protocol configured -----
-  if (ha.protocol == HA_PROTO_MQTT)
+  if (_ha.protocol == HA_PROTO_MQTT)
   {
-    //sn can be used in multiple cases
-    char sn[9];
-    sprintf_P(sn, PSTR("%08x"), ESP.getChipId());
-
-    //if not connected to MQTT
-    if (!_pubSubClient->connected())
-    {
-      //generate clientID
-      String clientID(F(APPLICATION1_NAME));
-      clientID += sn;
-      //and try to connect
-      if (!ha.mqtt.username[0])
-        _pubSubClient->connect(clientID.c_str());
-      else
-      {
-        if (!ha.mqtt.password[0])
-          _pubSubClient->connect(clientID.c_str(), ha.mqtt.username, NULL);
-        else
-          _pubSubClient->connect(clientID.c_str(), ha.mqtt.username, ha.mqtt.password);
-      }
-    }
-
-    //if still not connected
-    if (!_pubSubClient->connected())
-    {
-      //return error code minus 10 (result should be negative)
-      _haSendResult = _pubSubClient->state();
-      _haSendResult -= 10;
-    }
-    // else we are connected
-    else
+    //if we are connected
+    if (_mqttClient.connected())
     {
       //prepare topic
       String completeTopic, thisSensorTopic;
-      switch (ha.mqtt.type)
+      switch (_ha.mqtt.type)
       {
       case HA_MQTT_GENERIC_1:
-        completeTopic = ha.mqtt.generic.baseTopic;
+        completeTopic = _ha.mqtt.generic.baseTopic;
 
         //check for final slash
         if (completeTopic.length() && completeTopic.charAt(completeTopic.length() - 1) != '/')
@@ -399,7 +397,7 @@ void WebDS18B20Bus::UploadTick()
         completeTopic += F("$romcode$/temperature");
         break;
       case HA_MQTT_GENERIC_2:
-        completeTopic = ha.mqtt.generic.baseTopic;
+        completeTopic = _ha.mqtt.generic.baseTopic;
 
         //check for final slash
         if (completeTopic.length() && completeTopic.charAt(completeTopic.length() - 1) != '/')
@@ -412,7 +410,11 @@ void WebDS18B20Bus::UploadTick()
 
       //Replace placeholders
       if (completeTopic.indexOf(F("$sn$")) != -1)
+      {
+        char sn[9];
+        sprintf_P(sn, PSTR("%08x"), ESP.getChipId());
         completeTopic.replace(F("$sn$"), sn);
+      }
 
       if (completeTopic.indexOf(F("$mac$")) != -1)
         completeTopic.replace(F("$mac$"), WiFi.macAddress());
@@ -424,13 +426,14 @@ void WebDS18B20Bus::UploadTick()
 
       if (_ds18b20Bus->temperatureList) //if there is a list
       {
+        _haSendResult = true;
+
         //for each sensors found
-        for (byte i = 0; i < _ds18b20Bus->temperatureList->nbSensors; i++)
+        for (byte i = 0; i < _ds18b20Bus->temperatureList->nbSensors && _haSendResult; i++)
         {
           //if temperature is OK
           if (!std::isnan(_ds18b20Bus->temperatureList->temperatures[i]))
           {
-
             //convert romCode to text in oneshot
             sprintf_P(romCodeA, PSTR("%02x%02x%02x%02x%02x%02x%02x%02x"), _ds18b20Bus->temperatureList->romCodes[i][0], _ds18b20Bus->temperatureList->romCodes[i][1], _ds18b20Bus->temperatureList->romCodes[i][2], _ds18b20Bus->temperatureList->romCodes[i][3], _ds18b20Bus->temperatureList->romCodes[i][4], _ds18b20Bus->temperatureList->romCodes[i][5], _ds18b20Bus->temperatureList->romCodes[i][6], _ds18b20Bus->temperatureList->romCodes[i][7]);
 
@@ -441,7 +444,7 @@ void WebDS18B20Bus::UploadTick()
               thisSensorTopic.replace(F("$romcode$"), romCodeA);
 
             //send
-            _haSendResult = _pubSubClient->publish(thisSensorTopic.c_str(), String(_ds18b20Bus->temperatureList->temperatures[i], 2).c_str());
+            _haSendResult = _mqttClient.publish(thisSensorTopic.c_str(), String(_ds18b20Bus->temperatureList->temperatures[i], 2).c_str());
           }
         }
       }
@@ -455,16 +458,16 @@ void WebDS18B20Bus::SetConfigDefaultValues()
 {
   _ds18b20Bus = NULL;
 
-  ha.protocol = HA_PROTO_DISABLED;
-  ha.tls = false;
-  ha.hostname[0] = 0;
-  ha.uploadPeriod = 60;
+  _ha.protocol = HA_PROTO_DISABLED;
+  _ha.tls = false;
+  _ha.hostname[0] = 0;
+  _ha.uploadPeriod = 60;
 
-  ha.mqtt.type = HA_MQTT_GENERIC_1;
-  ha.mqtt.port = 1883;
-  ha.mqtt.username[0] = 0;
-  ha.mqtt.password[0] = 0;
-  ha.mqtt.generic.baseTopic[0] = 0;
+  _ha.mqtt.type = HA_MQTT_GENERIC_1;
+  _ha.mqtt.port = 1883;
+  _ha.mqtt.username[0] = 0;
+  _ha.mqtt.password[0] = 0;
+  _ha.mqtt.generic.baseTopic[0] = 0;
 };
 //------------------------------------------
 //Parse JSON object into configuration properties
@@ -472,25 +475,25 @@ void WebDS18B20Bus::ParseConfigJSON(DynamicJsonDocument &doc)
 {
 
   if (!doc[F("haproto")].isNull())
-    ha.protocol = doc[F("haproto")];
+    _ha.protocol = doc[F("haproto")];
   if (!doc[F("hatls")].isNull())
-    ha.tls = doc[F("hatls")];
+    _ha.tls = doc[F("hatls")];
   if (!doc[F("hahost")].isNull())
-    strlcpy(ha.hostname, doc[F("hahost")], sizeof(ha.hostname));
+    strlcpy(_ha.hostname, doc[F("hahost")], sizeof(_ha.hostname));
   if (!doc[F("haupperiod")].isNull())
-    ha.uploadPeriod = doc[F("haupperiod")];
+    _ha.uploadPeriod = doc[F("haupperiod")];
 
   if (!doc[F("hamtype")].isNull())
-    ha.mqtt.type = doc[F("hamtype")];
+    _ha.mqtt.type = doc[F("hamtype")];
   if (!doc[F("hamport")].isNull())
-    ha.mqtt.port = doc[F("hamport")];
+    _ha.mqtt.port = doc[F("hamport")];
   if (!doc[F("hamu")].isNull())
-    strlcpy(ha.mqtt.username, doc[F("hamu")], sizeof(ha.mqtt.username));
+    strlcpy(_ha.mqtt.username, doc[F("hamu")], sizeof(_ha.mqtt.username));
   if (!doc[F("hamp")].isNull())
-    strlcpy(ha.mqtt.password, doc[F("hamp")], sizeof(ha.mqtt.password));
+    strlcpy(_ha.mqtt.password, doc[F("hamp")], sizeof(_ha.mqtt.password));
 
   if (!doc[F("hamgbt")].isNull())
-    strlcpy(ha.mqtt.generic.baseTopic, doc[F("hamgbt")], sizeof(ha.mqtt.generic.baseTopic));
+    strlcpy(_ha.mqtt.generic.baseTopic, doc[F("hamgbt")], sizeof(_ha.mqtt.generic.baseTopic));
 };
 //------------------------------------------
 //Parse HTTP POST parameters in request into configuration properties
@@ -499,50 +502,50 @@ bool WebDS18B20Bus::ParseConfigWebRequest(AsyncWebServerRequest *request)
 
   //Parse HA protocol
   if (request->hasParam(F("haproto"), true))
-    ha.protocol = request->getParam(F("haproto"), true)->value().toInt();
+    _ha.protocol = request->getParam(F("haproto"), true)->value().toInt();
 
   //if an home Automation protocol has been selected then get common param
-  if (ha.protocol != HA_PROTO_DISABLED)
+  if (_ha.protocol != HA_PROTO_DISABLED)
   {
     if (request->hasParam(F("hatls"), true))
-      ha.tls = (request->getParam(F("hatls"), true)->value() == F("on"));
+      _ha.tls = (request->getParam(F("hatls"), true)->value() == F("on"));
     else
-      ha.tls = false;
-    if (request->hasParam(F("hahost"), true) && request->getParam(F("hahost"), true)->value().length() < sizeof(ha.hostname))
-      strcpy(ha.hostname, request->getParam(F("hahost"), true)->value().c_str());
+      _ha.tls = false;
+    if (request->hasParam(F("hahost"), true) && request->getParam(F("hahost"), true)->value().length() < sizeof(_ha.hostname))
+      strcpy(_ha.hostname, request->getParam(F("hahost"), true)->value().c_str());
     if (request->hasParam(F("haupperiod"), true))
-      ha.uploadPeriod = request->getParam(F("haupperiod"), true)->value().toInt();
+      _ha.uploadPeriod = request->getParam(F("haupperiod"), true)->value().toInt();
   }
 
   //Now get specific param
-  switch (ha.protocol)
+  switch (_ha.protocol)
   {
 
   case HA_PROTO_MQTT:
 
     if (request->hasParam(F("hamtype"), true))
-      ha.mqtt.type = request->getParam(F("hamtype"), true)->value().toInt();
+      _ha.mqtt.type = request->getParam(F("hamtype"), true)->value().toInt();
     if (request->hasParam(F("hamport"), true))
-      ha.mqtt.port = request->getParam(F("hamport"), true)->value().toInt();
-    if (request->hasParam(F("hamu"), true) && request->getParam(F("hamu"), true)->value().length() < sizeof(ha.mqtt.username))
-      strcpy(ha.mqtt.username, request->getParam(F("hamu"), true)->value().c_str());
+      _ha.mqtt.port = request->getParam(F("hamport"), true)->value().toInt();
+    if (request->hasParam(F("hamu"), true) && request->getParam(F("hamu"), true)->value().length() < sizeof(_ha.mqtt.username))
+      strcpy(_ha.mqtt.username, request->getParam(F("hamu"), true)->value().c_str());
     char tempPassword[64 + 1] = {0};
     //put MQTT password into temporary one for predefpassword
     if (request->hasParam(F("hamp"), true) && request->getParam(F("hamp"), true)->value().length() < sizeof(tempPassword))
       strcpy(tempPassword, request->getParam(F("hamp"), true)->value().c_str());
     //check for previous password (there is a predefined special password that mean to keep already saved one)
     if (strcmp_P(tempPassword, appDataPredefPassword))
-      strcpy(ha.mqtt.password, tempPassword);
+      strcpy(_ha.mqtt.password, tempPassword);
 
-    switch (ha.mqtt.type)
+    switch (_ha.mqtt.type)
     {
     case HA_MQTT_GENERIC_1:
     case HA_MQTT_GENERIC_2:
-      if (request->hasParam(F("hamgbt"), true) && request->getParam(F("hamgbt"), true)->value().length() < sizeof(ha.mqtt.generic.baseTopic))
-        strcpy(ha.mqtt.generic.baseTopic, request->getParam(F("hamgbt"), true)->value().c_str());
+      if (request->hasParam(F("hamgbt"), true) && request->getParam(F("hamgbt"), true)->value().length() < sizeof(_ha.mqtt.generic.baseTopic))
+        strcpy(_ha.mqtt.generic.baseTopic, request->getParam(F("hamgbt"), true)->value().c_str());
 
-      if (!ha.hostname[0] || !ha.mqtt.generic.baseTopic[0])
-        ha.protocol = HA_PROTO_DISABLED;
+      if (!_ha.hostname[0] || !_ha.mqtt.generic.baseTopic[0])
+        _ha.protocol = HA_PROTO_DISABLED;
       break;
     }
     break;
@@ -556,23 +559,23 @@ String WebDS18B20Bus::GenerateConfigJSON(bool forSaveFile = false)
 {
   String gc('{');
 
-  gc = gc + F("\"haproto\":") + ha.protocol;
-  gc = gc + F(",\"hatls\":") + ha.tls;
-  gc = gc + F(",\"hahost\":\"") + ha.hostname + '"';
-  gc = gc + F(",\"haupperiod\":") + ha.uploadPeriod;
+  gc = gc + F("\"haproto\":") + _ha.protocol;
+  gc = gc + F(",\"hatls\":") + _ha.tls;
+  gc = gc + F(",\"hahost\":\"") + _ha.hostname + '"';
+  gc = gc + F(",\"haupperiod\":") + _ha.uploadPeriod;
 
   //if for WebPage or protocol selected is MQTT
-  if (!forSaveFile || ha.protocol == HA_PROTO_MQTT)
+  if (!forSaveFile || _ha.protocol == HA_PROTO_MQTT)
   {
-    gc = gc + F(",\"hamtype\":") + ha.mqtt.type;
-    gc = gc + F(",\"hamport\":") + ha.mqtt.port;
-    gc = gc + F(",\"hamu\":\"") + ha.mqtt.username + '"';
+    gc = gc + F(",\"hamtype\":") + _ha.mqtt.type;
+    gc = gc + F(",\"hamport\":") + _ha.mqtt.port;
+    gc = gc + F(",\"hamu\":\"") + _ha.mqtt.username + '"';
     if (forSaveFile)
-      gc = gc + F(",\"hamp\":\"") + ha.mqtt.password + '"';
+      gc = gc + F(",\"hamp\":\"") + _ha.mqtt.password + '"';
     else
       gc = gc + F(",\"hamp\":\"") + (__FlashStringHelper *)appDataPredefPassword + '"'; //predefined special password (mean to keep already saved one)
 
-    gc = gc + F(",\"hamgbt\":\"") + ha.mqtt.generic.baseTopic + '"';
+    gc = gc + F(",\"hamgbt\":\"") + _ha.mqtt.generic.baseTopic + '"';
   }
 
   gc += '}';
@@ -588,12 +591,52 @@ String WebDS18B20Bus::GenerateStatusJSON()
   gs = gs + F("\"at\":");
   gs = gs + _ds18b20Bus->GetAllTempJSON();
 
-  if (ha.protocol != HA_PROTO_DISABLED)
-    gs = gs + F(",\"lhar\":") + _haSendResult;
-  else
-    gs = gs + F(",\"lhar\":\"NA\"");
+  gs = gs + F(",\"has1\":\"");
+  switch (_ha.protocol)
+  {
+  case HA_PROTO_DISABLED:
+    gs = gs + F("Disabled");
+    break;
+  case HA_PROTO_MQTT:
+    gs = gs + F("MQTT Connection State : ");
+    switch (_mqttClient.state())
+    {
+    case MQTT_CONNECTION_TIMEOUT:
+      gs = gs + F("Timed Out");
+      break;
+    case MQTT_CONNECTION_LOST:
+      gs = gs + F("Lost");
+      break;
+    case MQTT_CONNECT_FAILED:
+      gs = gs + F("Failed");
+      break;
+    case MQTT_CONNECTED:
+      gs = gs + F("Connected");
+      break;
+    case MQTT_CONNECT_BAD_PROTOCOL:
+      gs = gs + F("Bad Protocol Version");
+      break;
+    case MQTT_CONNECT_BAD_CLIENT_ID:
+      gs = gs + F("Incorrect ClientID ");
+      break;
+    case MQTT_CONNECT_UNAVAILABLE:
+      gs = gs + F("Server Unavailable");
+      break;
+    case MQTT_CONNECT_BAD_CREDENTIALS:
+      gs = gs + F("Bad Credentials");
+      break;
+    case MQTT_CONNECT_UNAUTHORIZED:
+      gs = gs + F("Connection Unauthorized");
+      break;
+    }
 
-  gs = gs + '}';
+    if (_mqttClient.state() == MQTT_CONNECTED)
+      gs = gs + F("\",\"has2\":\"Last Publish Result : ") + (_haSendResult ? F("OK") : F("Failed"));
+
+    break;
+  }
+  gs += '"';
+  gs += '}';
 
   return gs;
 };
@@ -601,45 +644,42 @@ String WebDS18B20Bus::GenerateStatusJSON()
 //code to execute during initialization and reinitialization of the app
 bool WebDS18B20Bus::AppInit(bool reInit)
 {
+  //Stop Publish
+  _publishTicker.detach();
 
-  //Clean up MQTT variables
-  if (_pubSubClient)
-  {
-    if (_pubSubClient->connected())
-      _pubSubClient->disconnect();
-    delete _pubSubClient;
-    _pubSubClient = NULL;
-  }
-  if (_wifiClient)
-  {
-    delete _wifiClient;
-    _wifiClient = NULL;
-  }
-  if (_wifiClientSecure)
-  {
-    delete _wifiClientSecure;
-    _wifiClientSecure = NULL;
-  }
+  //Stop Convert
+  _convertTicker.detach();
 
-  //if MQTT used so build MQTT variables
-  if (ha.protocol == HA_PROTO_MQTT)
-  {
+  //Stop MQTT Reconnect
+  _mqttReconnectTicker.detach();
+  if (_mqttClient.connected()) //Issue #598 : disconnect() crash if client not yet set
+    _mqttClient.disconnect();
 
-    if (!ha.tls)
+  //if MQTT used so configure it
+  if (_ha.protocol == HA_PROTO_MQTT)
+  {
+    //setup server
+    _mqttClient.setServer(_ha.hostname, _ha.mqtt.port);
+
+    //setup client used
+    if (!_ha.tls)
     {
-      _wifiClient = new WiFiClient();
-      _pubSubClient = new PubSubClient(ha.hostname, ha.mqtt.port, *_wifiClient);
+      _wifiMqttClient.setTimeout(1000); //set TCP timeout to 1sec
+      _mqttClient.setClient(_wifiMqttClient);
     }
     else
     {
-      _wifiClientSecure = new WiFiClientSecure();
-      _pubSubClient = new PubSubClient(ha.hostname, ha.mqtt.port, *_wifiClientSecure);
+      _wifiMqttClientSecure.setTimeout(1000); //set TCP timeout to 1sec
+      //_wifiMqttClientSecure.setFingerprint(Utils::FingerPrintA2S(fpStr, ha.fingerPrint));
+      _mqttClient.setClient(_wifiMqttClientSecure);
     }
+
+    //Connect
+    MqttConnect();
   }
 
   //cleanup DS18B20Buses
-
-  _initialized = false;
+  _owInitialized = false;
 
   if (_ds18b20Bus)
   {
@@ -660,30 +700,21 @@ bool WebDS18B20Bus::AppInit(bool reInit)
   _ds18b20Bus = new DS18B20Bus(ONEWIRE_PIN_IN, ONEWIRE_PIN_OUT);
   _ds18b20Bus->SetupTempSensors();
 
-  _initialized = true;
-
-  //cleanup Timers
-  if (_timers[1].getNumTimers()) //HA Timer
-    _timers[1].deleteTimer(0);
-  if (_timers[0].getNumTimers()) //temperature Refresh Timer
-    _timers[0].deleteTimer(0);
-
-  //reset _haSendResult
-  _haSendResult = 0;
+  _owInitialized = true;
 
   //Run a first Convert
   ConvertTick();
 
-  //if no HA, then use default period
-  if (ha.protocol == HA_PROTO_DISABLED)
-  {
-    //setup temperature conversion
-    _timers[0].setInterval(1000L * DEFAULT_CONVERT_PERIOD, [this]() { this->ConvertTick(); });
-  }
+  //if no HA, then use default period for Convert
+  if (_ha.protocol == HA_PROTO_DISABLED)
+    //start temperature conversion ticker
+    _convertTicker.attach(DEFAULT_CONVERT_PERIOD, [this]() { this->_needConvert = true; });
   else
   {
-    _timers[0].setInterval(1000L * ha.uploadPeriod, [this]() { this->ConvertTick(); });
-    _timers[1].setInterval(1000L * ha.uploadPeriod, [this]() { this->UploadTick(); });
+    //otherwise use Home automation configured period for Convert and Publish
+    _convertTicker.attach(_ha.uploadPeriod, [this]() { this->_needConvert = true; });
+    PublishTick(); //if configuration changed, publish immediately (Convert already ran just before this 'if')
+    _publishTicker.attach(_ha.uploadPeriod, [this]() { this->_needPublish = true; });
   }
 
   return true;
@@ -729,7 +760,7 @@ void WebDS18B20Bus::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot,
 {
   server.on("/getL", HTTP_GET, [this](AsyncWebServerRequest *request) {
     //check DS18B20Buses is initialized
-    if (!_initialized)
+    if (!_owInitialized)
     {
       request->send(400, F("text/html"), F("Buses not Initialized"));
       return;
@@ -744,7 +775,7 @@ void WebDS18B20Bus::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot,
     byte romCodePassed[8];
 
     //check DS18B20Buses is initialized
-    if (!_initialized)
+    if (!_owInitialized)
     {
       request->send(400, F("text/html"), F("Buses not Initialized"));
       return;
@@ -790,17 +821,40 @@ void WebDS18B20Bus::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot,
 //Run for timer
 void WebDS18B20Bus::AppRun()
 {
-  if (_pubSubClient)
-    _pubSubClient->loop();
-  if (_timers[0].getNumTimers())
-    _timers[0].run();
-  if (_timers[1].getNumTimers())
-    _timers[1].run();
+  if (_needMqttReconnect)
+  {
+    _needMqttReconnect = false;
+    Serial.print(F("MQTT Reconnection : "));
+    if (MqttConnect())
+      Serial.println(F("OK"));
+    else
+      Serial.println(F("Failed"));
+  }
+
+  //if MQTT required but not connected and reconnect ticker not started
+  if (_ha.protocol == HA_PROTO_MQTT && !_mqttClient.connected() && !_mqttReconnectTicker.active())
+  {
+    Serial.println(F("MQTT Disconnected"));
+    //set Ticker to reconnect after 10 or 60 sec (Wifi connected or not)
+    _mqttReconnectTicker.once_scheduled((WiFi.isConnected() ? 10 : 60), [this]() { _needMqttReconnect = true; });
+  }
+
+  if (_ha.protocol == HA_PROTO_MQTT)
+    _mqttClient.loop();
+  if (_needConvert)
+  {
+    _needConvert = false;
+    Serial.println(F("ConvertTick"));
+    ConvertTick();
+  }
+  if (_needPublish)
+  {
+    _needPublish = false;
+    Serial.println(F("PublishTick"));
+    PublishTick();
+  }
 }
 
 //------------------------------------------
 //Constructor
-WebDS18B20Bus::WebDS18B20Bus(char appId, String appName) : Application(appId, appName)
-{
-  //Nothing to do
-}
+WebDS18B20Bus::WebDS18B20Bus(char appId, String appName) : Application(appId, appName) {}

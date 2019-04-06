@@ -7,7 +7,7 @@
 
 #include "Main.h"
 #include "base\Utils.h"
-#include "base\Base.h"
+#include "base\Application.h"
 
 const char appDataPredefPassword[] PROGMEM = "ewcXoCt4HHjZUvY1";
 
@@ -17,7 +17,7 @@ const char appDataPredefPassword[] PROGMEM = "ewcXoCt4HHjZUvY1";
 #include <math.h> //for std::isnan
 #include "OneWireDualPin.h"
 #include <PubSubClient.h>
-#include "SimpleTimer.h"
+#include <Ticker.h>
 
 #define DEFAULT_CONVERT_PERIOD 30 //Period in seconds used to refresh sensor tmperature if no MQTT used
 
@@ -87,19 +87,25 @@ private:
 
   DS18B20Bus *_ds18b20Bus;
 
-  HomeAutomation ha;
+  HomeAutomation _ha;
   int _haSendResult = 0;
 
-  bool _initialized = false;
-  SimpleTimer _timers[2]; //(0: for Temperature conversion; 1: for HA if enabled)
-  WiFiClient *_wifiClient = NULL;
-  WiFiClientSecure *_wifiClientSecure = NULL;
-  PubSubClient *_pubSubClient = NULL;
+  bool _owInitialized = false;
+  bool _needConvert = false;
+  Ticker _convertTicker;
+  bool _needPublish = false;
+  Ticker _publishTicker;
+  WiFiClient _wifiMqttClient;
+  WiFiClientSecure _wifiMqttClientSecure;
+  PubSubClient _mqttClient;
+  bool _needMqttReconnect = false;
+  Ticker _mqttReconnectTicker;
 
   boolean isROMCodeString(const char *s);
 
   void ConvertTick();
-  void UploadTick();
+  bool MqttConnect();
+  void PublishTick();
 
   void SetConfigDefaultValues();
   void ParseConfigJSON(DynamicJsonDocument &doc);
