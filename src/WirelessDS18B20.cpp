@@ -83,7 +83,6 @@ void DS18B20Bus::SetupTempSensors()
     //if config is not correct
     if (data[2] != 0x50 || data[3] != 0x00 || data[4] != 0x7F)
     {
-
       //write ScratchPad with Th=80°C, Tl=0°C, Config 12bits resolution
       WriteScratchPad(addr, 0x50, 0x00, 0x7F);
 
@@ -340,10 +339,9 @@ void WebDS18B20Bus::ConvertTick()
 }
 
 //------------------------------------------
-// subscribe to MQTT topic after connection
+// Connect then Subscribe to MQTT
 bool WebDS18B20Bus::MqttConnect()
 {
-
   if (!WiFi.isConnected())
     return false;
 
@@ -367,6 +365,10 @@ bool WebDS18B20Bus::MqttConnect()
 
   return _mqttClient.connected();
 }
+
+//------------------------------------------
+//Callback used when an MQTT message arrived
+void WebDS18B20Bus::MqttCallback(char *topic, uint8_t *payload, unsigned int length) {}
 
 //------------------------------------------
 // Execute code to upload temperature to MQTT if enable
@@ -473,7 +475,6 @@ void WebDS18B20Bus::SetConfigDefaultValues()
 //Parse JSON object into configuration properties
 void WebDS18B20Bus::ParseConfigJSON(DynamicJsonDocument &doc)
 {
-
   if (!doc[F("haproto")].isNull())
     _ha.protocol = doc[F("haproto")];
   if (!doc[F("hatls")].isNull())
@@ -659,7 +660,7 @@ bool WebDS18B20Bus::AppInit(bool reInit)
   if (_ha.protocol == HA_PROTO_MQTT)
   {
     //setup server
-    _mqttClient.setServer(_ha.hostname, _ha.mqtt.port);
+    _mqttClient.setServer(_ha.hostname, _ha.mqtt.port).setCallback(std::bind(&WebDS18B20Bus::MqttCallback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));;
 
     //setup client used
     if (!_ha.tls)
@@ -674,7 +675,7 @@ bool WebDS18B20Bus::AppInit(bool reInit)
     MqttConnect();
   }
 
-  //cleanup DS18B20Buses
+  //cleanup DS18B20Bus
   _owInitialized = false;
 
   if (_ds18b20Bus)
@@ -755,10 +756,10 @@ size_t WebDS18B20Bus::GetHTMLContentSize(WebPageForPlaceHolder wp)
 void WebDS18B20Bus::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pauseApplication)
 {
   server.on("/getL", HTTP_GET, [this](AsyncWebServerRequest *request) {
-    //check DS18B20Buses is initialized
+    //check DS18B20Bus is initialized
     if (!_owInitialized)
     {
-      request->send(400, F("text/html"), F("Buses not Initialized"));
+      request->send(400, F("text/html"), F("Bus not Initialized"));
       return;
     }
 
@@ -773,7 +774,7 @@ void WebDS18B20Bus::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot,
     //check DS18B20Buses is initialized
     if (!_owInitialized)
     {
-      request->send(400, F("text/html"), F("Buses not Initialized"));
+      request->send(400, F("text/html"), F("Bus not Initialized"));
       return;
     }
 
@@ -828,7 +829,7 @@ void WebDS18B20Bus::AppRun()
   }
 
   //if MQTT required but not connected and reconnect ticker not started
-  if (_ha.protocol == HA_PROTO_MQTT && (!_mqttClient.connected() || _mqttClient.state()!=MQTT_CONNECTED) && !_mqttReconnectTicker.active()) //Added state control because esp8266 2.5.0 WiFiClient.close don't seems to disconnect
+  if (_ha.protocol == HA_PROTO_MQTT && (!_mqttClient.connected() || _mqttClient.state() != MQTT_CONNECTED) && !_mqttReconnectTicker.active()) //Added state control because esp8266 2.5.0 WiFiClient.close don't seems to disconnect
   {
     Serial.println(F("MQTT Disconnected"));
     //set Ticker to reconnect after 20 or 60 sec (Wifi connected or not)

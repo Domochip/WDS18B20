@@ -105,6 +105,7 @@ private:
 
   void ConvertTick();
   bool MqttConnect();
+  void MqttCallback(char *topic, uint8_t *payload, unsigned int length);
   void PublishTick();
 
   void SetConfigDefaultValues();
