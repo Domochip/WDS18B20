@@ -1,33 +1,36 @@
 <div id="applicationName" style="display: none;">WirelessDS18B20</div>
 <div id="shortApplicationName" style="display: none;">WDS18B20</div>
 
-<h2 class="content-subhead">OneWire<span id="l1-1"><h6 style="display:inline"><b> Loading...</b></h6></span></h2>
+<h2 class="content-subhead">OneWire<span id="l1"><h6 style="display:inline"><b> Loading...</b></h6></span></h2>
 <div id="AllSensors"></div>
-<h2 class="content-subhead">Home Automation<span id="l1-2"><h6 style="display:inline"><b> Loading...</b></h6></span></h2>
+<h2 class="content-subhead">Home Automation<span id="l2"><h6 style="display:inline"><b> Loading...</b></h6></span></h2>
 <span id="has1"></span><br>
 <span id="has2"></span>
 
 <script>
-    getJSON("/gs1",
-        function(GS1){
-            for(k in GS1){
+    //QuerySelector Prefix is added by load function to know into what element queySelector need to look for
+    //var qsp = '#content1 ';
+
+    getJSON("/gs"+qsp[8], 
+        function(GS){
+            for(k in GS){
                 if(k=="at"){
-                    var allTemp=GS1[k];
+                    var allTemp=GS[k];
                     for(romCode in allTemp){
-                        $("#AllSensors").innerHTML+=romCode+" : <a class='pure-button pure-button-primary' href='/getT?ROMCode="+romCode+"'>"+allTemp[romCode]+"°C</a><br>"
+                        $(qsp+'#AllSensors').innerHTML+=romCode+" : <a class='pure-button pure-button-primary' href='/getT?ROMCode="+romCode+"'>"+allTemp[romCode]+"°C</a><br>"
                     }
                 }
                 else{
-                    if((e = $('#'+k)) != undefined) e.innerHTML = GS1[k];
+                    if((e = $(qsp+'#' + k)) != undefined) e.innerHTML = GS[k];
                 }
             }
 
-            fadeOut($("#l1-1"));
-            fadeOut($("#l1-2"));
+            fadeOut($(qsp+'#l1'));
+            fadeOut($(qsp+'#l2'));
         },
         function(){
-            $("#l1-1").innerHTML='<h4 style="display:inline;color:red;"><b> Failed</b></h4>';
-            $("#l1-2").innerHTML='<h4 style="display:inline;color:red;"><b> Failed</b></h4>';
+            $(qsp+'#l1').innerHTML='<h4 style="display:inline;color:red;"><b> Failed</b></h4>';
+            $(qsp+'#l2').innerHTML='<h4 style="display:inline;color:red;"><b> Failed</b></h4>';
         }
     );
 </script>
