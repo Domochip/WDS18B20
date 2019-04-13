@@ -358,6 +358,7 @@ bool WebDS18B20Bus::MqttConnect()
   else
     _mqttClient.connect(clientID.c_str(), _ha.mqtt.username, _ha.mqtt.password);
 
+  //Subscribe to needed topic
   if (_mqttClient.connected())
   {
     //Subscribe to needed topic
@@ -385,26 +386,19 @@ void WebDS18B20Bus::PublishTick()
     if (_mqttClient.connected())
     {
       //prepare topic
-      String completeTopic, thisSensorTopic;
+      String completeTopic = _ha.mqtt.generic.baseTopic;
+
+      //check for final slash
+      if (completeTopic.length() && completeTopic.charAt(completeTopic.length() - 1) != '/')
+        completeTopic += '/';
+
       switch (_ha.mqtt.type)
       {
       case HA_MQTT_GENERIC_1:
-        completeTopic = _ha.mqtt.generic.baseTopic;
-
-        //check for final slash
-        if (completeTopic.length() && completeTopic.charAt(completeTopic.length() - 1) != '/')
-          completeTopic += '/';
-
         //complete the topic
         completeTopic += F("$romcode$/temperature");
         break;
       case HA_MQTT_GENERIC_2:
-        completeTopic = _ha.mqtt.generic.baseTopic;
-
-        //check for final slash
-        if (completeTopic.length() && completeTopic.charAt(completeTopic.length() - 1) != '/')
-          completeTopic += '/';
-
         //complete the topic
         completeTopic += F("$romcode$");
         break;
@@ -429,6 +423,8 @@ void WebDS18B20Bus::PublishTick()
       if (_ds18b20Bus->temperatureList) //if there is a list
       {
         _haSendResult = true;
+
+        String thisSensorTopic;
 
         //for each sensors found
         for (byte i = 0; i < _ds18b20Bus->temperatureList->nbSensors && _haSendResult; i++)
