@@ -1,9 +1,9 @@
 <div id="applicationName" style="display: none;">WirelessDS18B20</div>
 <div id="shortApplicationName" style="display: none;">WDS18B20</div>
 
-<h2 class="content-subhead">OneWire<span id="l1"><h6 style="display:inline"><b> Loading...</b></h6></span></h2>
+<h2 class="content-subhead">OneWire<span id="l"><h6 style="display:inline"><b> Loading...</b></h6></span></h2>
 <div id="AllSensors"></div>
-<h3 class="content-subhead">Home Automation Status<span id="l2"><h6 style="display:inline"><b> Loading...</b></h6></span></h3>
+<h3 class="content-subhead">Home Automation Status</h3>
 <span id="has1"></span><br>
 <span id="has2"></span>
 
@@ -25,12 +25,10 @@
                 }
             }
 
-            fadeOut($(qsp+'#l1'));
-            fadeOut($(qsp+'#l2'));
+            fadeOut($(qsp+'#l'));
         },
         function(){
-            $(qsp+'#l1').innerHTML='<h4 style="display:inline;color:red;"><b> Failed</b></h4>';
-            $(qsp+'#l2').innerHTML='<h4 style="display:inline;color:red;"><b> Failed</b></h4>';
+            $(qsp+'#l').innerHTML='<h4 style="display:inline;color:red;"><b> Failed</b></h4>';
         }
     );
 </script>
