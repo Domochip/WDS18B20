@@ -102,7 +102,7 @@
 
 <script>
     //QuerySelector Prefix is added by load function to know into what element queySelector need to look for
-    //var qsp = '#content1 ';
+    //var qsp = '#contentX ';
 
     $(qsp+"#hai").addEventListener('click',function(){
         $(qsp+"#haidiv").style.display=($(qsp+"#haidiv").style.display==''?'none':'');
@@ -148,18 +148,16 @@
 
     $(qsp+"#hatls").addEventListener('change',function(){
         if($(qsp+"#hatls").checked){
-            $(qsp+"#hahtlse").style.display='';
             $(qsp+"#hamport").value=8883;
         }
         else{
-            $(qsp+"#hahtlse").style.display='none';
             $(qsp+"#hamport").value=1883;
         }
     });
 
     $(qsp+"#f").addEventListener('submit',function(event){
         $(qsp+"#r").innerHTML="Saving Configuration...";
-        post("/sc1",
+        post("/sc"+qsp[8],
             new FormData($(qsp+"#f")),
             function(){ 
                 $(qsp+"#f").style.display='none';

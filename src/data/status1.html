@@ -3,13 +3,13 @@
 
 <h2 class="content-subhead">OneWire<span id="l1"><h6 style="display:inline"><b> Loading...</b></h6></span></h2>
 <div id="AllSensors"></div>
-<h2 class="content-subhead">Home Automation<span id="l2"><h6 style="display:inline"><b> Loading...</b></h6></span></h2>
+<h3 class="content-subhead">Home Automation Status<span id="l2"><h6 style="display:inline"><b> Loading...</b></h6></span></h3>
 <span id="has1"></span><br>
 <span id="has2"></span>
 
 <script>
     //QuerySelector Prefix is added by load function to know into what element queySelector need to look for
-    //var qsp = '#content1 ';
+    //var qsp = '#contentX ';
 
     getJSON("/gs"+qsp[8], 
         function(GS){
@@ -21,7 +21,7 @@
                     }
                 }
                 else{
-                    if((e = $(qsp+'#' + k)) != undefined) e.innerHTML = GS[k];
+                    if((e = $(qsp+'#'+k)) != undefined) e.innerHTML = GS[k];
                 }
             }
 
