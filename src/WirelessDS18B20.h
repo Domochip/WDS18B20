@@ -79,7 +79,6 @@ private:
   typedef struct
   {
     byte protocol = HA_PROTO_DISABLED;
-    bool tls = false;
     char hostname[64 + 1] = {0};
     uint16_t uploadPeriod = 60;
     MQTT mqtt;
@@ -89,14 +88,13 @@ private:
 
   HomeAutomation _ha;
   int _haSendResult = 0;
+  WiFiClient _wifiClient;
 
   bool _owInitialized = false;
   bool _needConvert = false;
   Ticker _convertTicker;
   bool _needPublish = false;
   Ticker _publishTicker;
-  WiFiClient _wifiMqttClient;
-  WiFiClientSecure _wifiMqttClientSecure;
   PubSubClient _mqttClient;
   bool _needMqttReconnect = false;
   Ticker _mqttReconnectTicker;
