@@ -102,7 +102,7 @@ private:
   boolean isROMCodeString(const char *s);
 
   void ConvertTick();
-  bool MqttConnect();
+  bool MqttConnect(bool init = false);
   void MqttCallback(char *topic, uint8_t *payload, unsigned int length);
   void PublishTick();
 

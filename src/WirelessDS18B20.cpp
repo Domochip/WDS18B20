@@ -340,7 +340,7 @@ void WebDS18B20Bus::ConvertTick()
 
 //------------------------------------------
 // Connect then Subscribe to MQTT
-bool WebDS18B20Bus::MqttConnect()
+bool WebDS18B20Bus::MqttConnect(bool init)
 {
   if (!WiFi.isConnected())
     return false;
