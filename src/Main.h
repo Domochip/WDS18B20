@@ -4,18 +4,13 @@
 #include <arduino.h>
 
 //DomoChip Informations
-//------------Compile for 1M 64K SPIFFS------------
 //Configuration Web Pages :
 //http://IP/
-//http://IP/config
-//http://IP/fw
 //DS18B20 Request Web Pages
 //http://IP/getL
 //http://IP/getT?ROMCode=0A1B2C3D4E5F6071
 
-//include Application header file
-#include "WirelessDS18B20.h"
-
+#define APPLICATION1_HEADER "WirelessDS18B20.h"
 #define APPLICATION1_NAME "WDS18B20"
 #define APPLICATION1_DESC "DomoChip Wireless DS18B20"
 #define APPLICATION1_CLASS WebDS18B20Bus
@@ -28,8 +23,10 @@
 //Enable developper mode (fwdev webpage and SPIFFS is used)
 #define DEVELOPPER_MODE 0
 
-//Choose Serial Speed
-#define SERIAL_SPEED 115200
+//Log Serial Object
+#define LOG_SERIAL Serial
+//Choose Log Serial Speed
+#define LOG_SERIAL_SPEED 115200
 
 //Choose Pin used to boot in Rescue Mode
 //#define RESCUE_BTN_PIN 2
