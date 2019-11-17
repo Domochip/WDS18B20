@@ -363,9 +363,8 @@ void WebDS18B20Bus::PublishTick()
       //prepare topic
       String completeTopic = _ha.mqtt.generic.baseTopic;
 
-      //check for final slash
-      if (completeTopic.length() && completeTopic.charAt(completeTopic.length() - 1) != '/')
-        completeTopic += '/';
+      //Replace placeholders
+      MQTTMan::prepareTopic(completeTopic);
 
       switch (_ha.mqtt.type)
       {
@@ -378,20 +377,6 @@ void WebDS18B20Bus::PublishTick()
         completeTopic += F("$romcode$");
         break;
       }
-
-      //Replace placeholders
-      if (completeTopic.indexOf(F("$sn$")) != -1)
-      {
-        char sn[9];
-        sprintf_P(sn, PSTR("%08x"), ESP.getChipId());
-        completeTopic.replace(F("$sn$"), sn);
-      }
-
-      if (completeTopic.indexOf(F("$mac$")) != -1)
-        completeTopic.replace(F("$mac$"), WiFi.macAddress());
-
-      if (completeTopic.indexOf(F("$model$")) != -1)
-        completeTopic.replace(F("$model$"), APPLICATION1_NAME);
 
       char romCodeA[17] = {0};
 
