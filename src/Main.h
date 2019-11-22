@@ -20,6 +20,9 @@
 #define DEFAULT_AP_SSID "WirelessDS"
 #define DEFAULT_AP_PSK "PasswordDS"
 
+//Enable status webpage EventSource
+#define ENABLE_STATUS_EVENTSOURCE 0
+
 //Enable developper mode (fwdev webpage and SPIFFS is used)
 #define DEVELOPPER_MODE 0
 
