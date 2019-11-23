@@ -2,27 +2,45 @@
 <div id="shortApplicationName" style="display: none;">WDS18B20</div>
 
 <h2 class="content-subhead">OneWire<span id="l"><h6 style="display:inline"><b> Loading...</b></h6></span></h2>
-<div id="AllSensors"></div>
+<h3 class="content-subhead">Sensors List<span id="lastRefresh"> (AutoRefresh)</span></h3>
+<dl id="liveData"></dl>
 <h3 class="content-subhead">Home Automation Status</h3>
-<span id="has1"></span><br>
-<span id="has2"></span>
+<dl id="has">
+    <dd id="has1"></dd>
+    <dd id="has2"></dd>
+</dl>
 
 <script>
     //QuerySelector Prefix is added by load function to know into what element queySelector need to look for
     //var qsp = '#contentX ';
 
+    function parseLiveData(liveData){
+        for(k in liveData){
+            kForId=(/[^a-zA-Z]/.test(k[0]) ? 'a' : '')+k; //k[0] is not in a-zA-Z then we need to add 'a'
+            if($(qsp+'#'+kForId) != undefined){
+                var existingElement= $(qsp+'#'+kForId+'Value');
+                if(existingElement.innerText!=liveData[k]){
+                    existingElement.innerText=liveData[k];
+                    existingElement.style.fontWeight="bold";
+                }
+                else{
+                    existingElement.style.fontWeight="normal";
+                }
+            }
+            else{
+                var newElement = document.createElement("dd");
+                newElement.id=kForId;
+                newElement.innerHTML=k+' : <a id="'+kForId+'Value" class="pure-button pure-button-primary" href="/getT?ROMCode='+k+'">'+liveData[k]+'°C</a>';
+                $(qsp+'#liveData').appendChild(newElement);
+            }
+        }
+    }
+
     getJSON("/gs"+qsp[8], 
         function(GS){
             for(k in GS){
-                if(k=="at"){
-                    var allTemp=GS[k];
-                    for(romCode in allTemp){
-                        $(qsp+'#AllSensors').innerHTML+=romCode+" : <a class='pure-button pure-button-primary' href='/getT?ROMCode="+romCode+"'>"+allTemp[romCode]+"°C</a><br>"
-                    }
-                }
-                else{
-                    if((e = $(qsp+'#'+k)) != undefined) e.innerHTML = GS[k];
-                }
+                if(k=='liveData') parseLiveData(GS[k]);
+                else if((e = $(qsp+'#'+k)) != undefined) e.innerHTML = GS[k];
             }
 
             fadeOut($(qsp+'#l'));
@@ -31,4 +49,13 @@
             $(qsp+'#l').innerHTML='<h4 style="display:inline;color:red;"><b> Failed</b></h4>';
         }
     );
+
+    if (!!window.EventSource) {
+        var statusEventSource = new EventSource('/statusEvt'+qsp[8]);
+        statusEventSource.addEventListener('message', function(e) {
+            console.log('statusEvt'+qsp[8]+' : '+e.data);
+            parseLiveData(JSON.parse(e.data));
+            $(qsp+'#lastRefresh').innerText=' ('+(new Date()).toLocaleString()+')';
+        });
+    }
 </script>

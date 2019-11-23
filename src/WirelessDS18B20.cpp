@@ -405,6 +405,9 @@ void WebDS18B20Bus::publishTick()
             _haSendResult = _mqttMan.publish(thisSensorTopic.c_str(), String(_ds18b20Bus->temperatureList->temperatures[i], 2).c_str());
           }
         }
+
+        //Send published values to Web clients through EventSource
+        _statusEventSource.send(_ds18b20Bus->GetAllTempJSON().c_str());
       }
     }
   }
@@ -537,8 +540,7 @@ String WebDS18B20Bus::generateStatusJSON()
 {
   String gs('{');
 
-  gs = gs + F("\"at\":");
-  gs = gs + _ds18b20Bus->GetAllTempJSON();
+  gs = gs + F("\"liveData\":") + _ds18b20Bus->GetAllTempJSON();
 
   gs = gs + F(",\"has1\":\"");
   switch (_ha.protocol)

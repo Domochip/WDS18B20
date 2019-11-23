@@ -15,13 +15,13 @@
 #define APPLICATION1_DESC "DomoChip Wireless DS18B20"
 #define APPLICATION1_CLASS WebDS18B20Bus
 
-#define VERSION_NUMBER "3.3.3"
+#define VERSION_NUMBER "3.3.4"
 
 #define DEFAULT_AP_SSID "WirelessDS"
 #define DEFAULT_AP_PSK "PasswordDS"
 
 //Enable status webpage EventSource
-#define ENABLE_STATUS_EVENTSOURCE 0
+#define ENABLE_STATUS_EVENTSOURCE 1
 
 //Enable developper mode (fwdev webpage and SPIFFS is used)
 #define DEVELOPPER_MODE 0
