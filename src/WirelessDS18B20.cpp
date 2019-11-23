@@ -329,7 +329,7 @@ boolean WebDS18B20Bus::isROMCodeString(const char *s)
 
 //------------------------------------------
 // Execute code to start temperature conversion of all sensors
-void WebDS18B20Bus::ConvertTick()
+void WebDS18B20Bus::convertTick()
 {
   //StartConvert
   _ds18b20Bus->StartConvertT();
@@ -340,15 +340,15 @@ void WebDS18B20Bus::ConvertTick()
 
 //------------------------------------------
 // Connect then Subscribe to MQTT
-void WebDS18B20Bus::MqttConnectedCallback(MQTTMan *mqttMan, bool firstConnection) {}
+void WebDS18B20Bus::mqttConnectedCallback(MQTTMan *mqttMan, bool firstConnection) {}
 
 //------------------------------------------
 //Callback used when an MQTT message arrived
-void WebDS18B20Bus::MqttCallback(char *topic, uint8_t *payload, unsigned int length) {}
+void WebDS18B20Bus::mqttCallback(char *topic, uint8_t *payload, unsigned int length) {}
 
 //------------------------------------------
 // Execute code to upload temperature to MQTT if enable
-void WebDS18B20Bus::PublishTick()
+void WebDS18B20Bus::publishTick()
 {
   //if Home Automation upload not enabled then return
   if (_ha.protocol == HA_PROTO_DISABLED)
@@ -358,7 +358,7 @@ void WebDS18B20Bus::PublishTick()
   if (_ha.protocol == HA_PROTO_MQTT)
   {
     //if we are connected
-    if (m_mqttMan.connected())
+    if (_mqttMan.connected())
     {
       //prepare topic
       String completeTopic = _ha.mqtt.generic.baseTopic;
@@ -402,7 +402,7 @@ void WebDS18B20Bus::PublishTick()
               thisSensorTopic.replace(F("$romcode$"), romCodeA);
 
             //send
-            _haSendResult = m_mqttMan.publish(thisSensorTopic.c_str(), String(_ds18b20Bus->temperatureList->temperatures[i], 2).c_str());
+            _haSendResult = _mqttMan.publish(thisSensorTopic.c_str(), String(_ds18b20Bus->temperatureList->temperatures[i], 2).c_str());
           }
         }
       }
@@ -412,7 +412,7 @@ void WebDS18B20Bus::PublishTick()
 
 //------------------------------------------
 //Used to initialize configuration properties to default values
-void WebDS18B20Bus::SetConfigDefaultValues()
+void WebDS18B20Bus::setConfigDefaultValues()
 {
   _ds18b20Bus = NULL;
 
@@ -428,7 +428,7 @@ void WebDS18B20Bus::SetConfigDefaultValues()
 };
 //------------------------------------------
 //Parse JSON object into configuration properties
-void WebDS18B20Bus::ParseConfigJSON(DynamicJsonDocument &doc)
+void WebDS18B20Bus::parseConfigJSON(DynamicJsonDocument &doc)
 {
   if (!doc[F("haproto")].isNull())
     _ha.protocol = doc[F("haproto")];
@@ -451,7 +451,7 @@ void WebDS18B20Bus::ParseConfigJSON(DynamicJsonDocument &doc)
 };
 //------------------------------------------
 //Parse HTTP POST parameters in request into configuration properties
-bool WebDS18B20Bus::ParseConfigWebRequest(AsyncWebServerRequest *request)
+bool WebDS18B20Bus::parseConfigWebRequest(AsyncWebServerRequest *request)
 {
 
   //Parse HA protocol
@@ -505,7 +505,7 @@ bool WebDS18B20Bus::ParseConfigWebRequest(AsyncWebServerRequest *request)
 };
 //------------------------------------------
 //Generate JSON from configuration properties
-String WebDS18B20Bus::GenerateConfigJSON(bool forSaveFile = false)
+String WebDS18B20Bus::generateConfigJSON(bool forSaveFile = false)
 {
   String gc('{');
 
@@ -533,7 +533,7 @@ String WebDS18B20Bus::GenerateConfigJSON(bool forSaveFile = false)
 };
 //------------------------------------------
 //Generate JSON of application status
-String WebDS18B20Bus::GenerateStatusJSON()
+String WebDS18B20Bus::generateStatusJSON()
 {
   String gs('{');
 
@@ -548,7 +548,7 @@ String WebDS18B20Bus::GenerateStatusJSON()
     break;
   case HA_PROTO_MQTT:
     gs = gs + F("MQTT Connection State : ");
-    switch (m_mqttMan.state())
+    switch (_mqttMan.state())
     {
     case MQTT_CONNECTION_TIMEOUT:
       gs = gs + F("Timed Out");
@@ -579,7 +579,7 @@ String WebDS18B20Bus::GenerateStatusJSON()
       break;
     }
 
-    if (m_mqttMan.state() == MQTT_CONNECTED)
+    if (_mqttMan.state() == MQTT_CONNECTED)
       gs = gs + F("\",\"has2\":\"Last Publish Result : ") + (_haSendResult ? F("OK") : F("Failed"));
 
     break;
@@ -591,7 +591,7 @@ String WebDS18B20Bus::GenerateStatusJSON()
 };
 //------------------------------------------
 //code to execute during initialization and reinitialization of the app
-bool WebDS18B20Bus::AppInit(bool reInit)
+bool WebDS18B20Bus::appInit(bool reInit)
 {
   //Stop Publish
   _publishTicker.detach();
@@ -600,7 +600,7 @@ bool WebDS18B20Bus::AppInit(bool reInit)
   _convertTicker.detach();
 
   //Stop MQTT
-  m_mqttMan.disconnect();
+  _mqttMan.disconnect();
 
   //if MQTT used so configure it
   if (_ha.protocol == HA_PROTO_MQTT)
@@ -611,13 +611,13 @@ bool WebDS18B20Bus::AppInit(bool reInit)
     willTopic += F("connected");
 
     //setup MQTT
-    m_mqttMan.setClient(_wifiClient).setServer(_ha.hostname, _ha.mqtt.port);
-    m_mqttMan.setConnectedAndWillTopic(willTopic.c_str());
-    m_mqttMan.setConnectedCallback(std::bind(&WebDS18B20Bus::MqttConnectedCallback, this, std::placeholders::_1, std::placeholders::_2));
-    m_mqttMan.setCallback(std::bind(&WebDS18B20Bus::MqttCallback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    _mqttMan.setClient(_wifiClient).setServer(_ha.hostname, _ha.mqtt.port);
+    _mqttMan.setConnectedAndWillTopic(willTopic.c_str());
+    _mqttMan.setConnectedCallback(std::bind(&WebDS18B20Bus::mqttConnectedCallback, this, std::placeholders::_1, std::placeholders::_2));
+    _mqttMan.setCallback(std::bind(&WebDS18B20Bus::mqttCallback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
     //Connect
-    m_mqttMan.connect(_ha.mqtt.username, _ha.mqtt.password);
+    _mqttMan.connect(_ha.mqtt.username, _ha.mqtt.password);
   }
 
   //cleanup DS18B20Bus
@@ -645,7 +645,7 @@ bool WebDS18B20Bus::AppInit(bool reInit)
   _owInitialized = true;
 
   //Run a first Convert
-  ConvertTick();
+  convertTick();
 
   //if no HA, then use default period for Convert
   if (_ha.protocol == HA_PROTO_DISABLED)
@@ -655,7 +655,7 @@ bool WebDS18B20Bus::AppInit(bool reInit)
   {
     //otherwise use Home automation configured period for Convert and Publish
     _convertTicker.attach(_ha.uploadPeriod, [this]() { this->_needConvert = true; });
-    PublishTick(); //if configuration changed, publish immediately (Convert already ran just before this 'if')
+    publishTick(); //if configuration changed, publish immediately (Convert already ran just before this 'if')
     _publishTicker.attach(_ha.uploadPeriod, [this]() { this->_needPublish = true; });
   }
 
@@ -663,7 +663,7 @@ bool WebDS18B20Bus::AppInit(bool reInit)
 };
 //------------------------------------------
 //Return HTML Code to insert into Status Web page
-const uint8_t *WebDS18B20Bus::GetHTMLContent(WebPageForPlaceHolder wp)
+const uint8_t *WebDS18B20Bus::getHTMLContent(WebPageForPlaceHolder wp)
 {
   switch (wp)
   {
@@ -680,7 +680,7 @@ const uint8_t *WebDS18B20Bus::GetHTMLContent(WebPageForPlaceHolder wp)
   return nullptr;
 };
 //and his Size
-size_t WebDS18B20Bus::GetHTMLContentSize(WebPageForPlaceHolder wp)
+size_t WebDS18B20Bus::getHTMLContentSize(WebPageForPlaceHolder wp)
 {
   switch (wp)
   {
@@ -698,7 +698,7 @@ size_t WebDS18B20Bus::GetHTMLContentSize(WebPageForPlaceHolder wp)
 };
 //------------------------------------------
 //code to register web request answer to the web server
-void WebDS18B20Bus::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pauseApplication)
+void WebDS18B20Bus::appInitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pauseApplication)
 {
   server.on("/getL", HTTP_GET, [this](AsyncWebServerRequest *request) {
     //check DS18B20Bus is initialized
@@ -736,7 +736,7 @@ void WebDS18B20Bus::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot,
       {
         //Parse it
         for (byte j = 0; j < 8; j++)
-          romCodePassed[j] = (Utils::AsciiToHex(ROMCodeA[j * 2]) * 0x10) + Utils::AsciiToHex(ROMCodeA[(j * 2) + 1]);
+          romCodePassed[j] = (Utils::asciiToHex(ROMCodeA[j * 2]) * 0x10) + Utils::asciiToHex(ROMCodeA[(j * 2) + 1]);
         requestPassed = true;
       }
     }
@@ -761,23 +761,23 @@ void WebDS18B20Bus::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot,
 
 //------------------------------------------
 //Run for timer
-void WebDS18B20Bus::AppRun()
+void WebDS18B20Bus::appRun()
 {
   if (_ha.protocol == HA_PROTO_MQTT)
-    m_mqttMan.loop();
+    _mqttMan.loop();
 
   if (_needConvert)
   {
     _needConvert = false;
     LOG_SERIAL.println(F("ConvertTick"));
-    ConvertTick();
+    convertTick();
   }
 
   if (_needPublish)
   {
     _needPublish = false;
     LOG_SERIAL.println(F("PublishTick"));
-    PublishTick();
+    publishTick();
   }
 }
 

@@ -93,25 +93,25 @@ private:
   bool _needPublish = false;
   Ticker _publishTicker;
   
-  MQTTMan m_mqttMan;
+  MQTTMan _mqttMan;
 
   boolean isROMCodeString(const char *s);
 
-  void ConvertTick();
-  void MqttConnectedCallback(MQTTMan *mqttMan, bool firstConnection);
-  void MqttCallback(char *topic, uint8_t *payload, unsigned int length);
-  void PublishTick();
+  void convertTick();
+  void mqttConnectedCallback(MQTTMan *mqttMan, bool firstConnection);
+  void mqttCallback(char *topic, uint8_t *payload, unsigned int length);
+  void publishTick();
 
-  void SetConfigDefaultValues();
-  void ParseConfigJSON(DynamicJsonDocument &doc);
-  bool ParseConfigWebRequest(AsyncWebServerRequest *request);
-  String GenerateConfigJSON(bool forSaveFile);
-  String GenerateStatusJSON();
-  bool AppInit(bool reInit);
-  const uint8_t *GetHTMLContent(WebPageForPlaceHolder wp);
-  size_t GetHTMLContentSize(WebPageForPlaceHolder wp);
-  void AppInitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pauseApplication);
-  void AppRun();
+  void setConfigDefaultValues();
+  void parseConfigJSON(DynamicJsonDocument &doc);
+  bool parseConfigWebRequest(AsyncWebServerRequest *request);
+  String generateConfigJSON(bool forSaveFile);
+  String generateStatusJSON();
+  bool appInit(bool reInit);
+  const uint8_t *getHTMLContent(WebPageForPlaceHolder wp);
+  size_t getHTMLContentSize(WebPageForPlaceHolder wp);
+  void appInitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pauseApplication);
+  void appRun();
 
 public:
   WebDS18B20Bus(char appId, String fileName);
