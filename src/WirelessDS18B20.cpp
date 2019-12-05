@@ -771,14 +771,18 @@ void WebDS18B20Bus::appRun()
   if (_needConvert)
   {
     _needConvert = false;
+#ifdef LOG_SERIAL
     LOG_SERIAL.println(F("ConvertTick"));
+#endif
     convertTick();
   }
 
   if (_needPublish)
   {
     _needPublish = false;
+#ifdef LOG_SERIAL
     LOG_SERIAL.println(F("PublishTick"));
+#endif
     publishTick();
   }
 }
