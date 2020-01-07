@@ -334,5 +334,5 @@ Wire Notes Line
 Wire Notes Line
 	650  3000 650  2100
 Text Notes 650  2200 0    50   ~ 0
-Optional Power
+Optional
 $EndSCHEMATC
