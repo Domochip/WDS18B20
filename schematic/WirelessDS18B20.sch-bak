@@ -19,7 +19,7 @@ U 1 1 57A0B00F
 P 800 1350
 F 0 "P2" H 800 1550 50  0000 C CNN
 F 1 "1-Wire Bus" V 900 1350 50  0000 C CNN
-F 2 "Terminal_Blocks:TerminalBlock_bornier-3_P5.08mm" H 800 1350 50  0001 C CNN
+F 2 "TerminalBlock:TerminalBlock_bornier-3_P5.08mm" H 800 1350 50  0001 C CNN
 F 3 "" H 800 1350 50  0000 C CNN
 	1    800  1350
 	-1   0    0    1   
@@ -41,7 +41,7 @@ U 1 1 57A0B1BF
 P 1500 1150
 F 0 "R1" V 1580 1150 50  0000 C CNN
 F 1 "2.2K" V 1500 1150 50  0000 C CNN
-F 2 "Resistors_SMD:R_0805_HandSoldering" V 1430 1150 50  0001 C CNN
+F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.15x1.40mm_HandSolder" V 1430 1150 50  0001 C CNN
 F 3 "" H 1500 1150 50  0000 C CNN
 	1    1500 1150
 	1    0    0    -1  
@@ -86,7 +86,7 @@ U 1 1 57A0BCAA
 P 1750 1600
 F 0 "R3" V 1830 1600 50  0000 C CNN
 F 1 "2.2K" V 1750 1600 50  0000 C CNN
-F 2 "Resistors_SMD:R_0805_HandSoldering" V 1680 1600 50  0001 C CNN
+F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.15x1.40mm_HandSolder" V 1680 1600 50  0001 C CNN
 F 3 "" H 1750 1600 50  0000 C CNN
 	1    1750 1600
 	0    1    1    0   
@@ -97,7 +97,7 @@ U 1 1 58278690
 P 1700 1150
 F 0 "R2" V 1780 1150 50  0000 C CNN
 F 1 "2.2K" V 1700 1150 50  0000 C CNN
-F 2 "Resistors_SMD:R_0805_HandSoldering" V 1630 1150 50  0001 C CNN
+F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.15x1.40mm_HandSolder" V 1630 1150 50  0001 C CNN
 F 3 "" H 1700 1150 50  0000 C CNN
 	1    1700 1150
 	1    0    0    -1  
@@ -123,7 +123,7 @@ U 1 1 59F83235
 P 1350 1600
 F 0 "Q1" H 1200 1550 50  0000 L CNN
 F 1 "BS170" H 1150 1450 50  0000 L CNN
-F 2 "TO_SOT_Packages_THT:TO-92_Horizontal2_Inline_Narrow_Oval" H 1550 1525 50  0001 L CIN
+F 2 "Package_TO_SOT_THT:TO-92_Inline_Horizontal2" H 1550 1525 50  0001 L CIN
 F 3 "" H 1350 1600 50  0001 L CNN
 	1    1350 1600
 	-1   0    0    -1  
@@ -141,8 +141,6 @@ F 3 "" H 2500 1931 60  0001 C CNN
 $EndComp
 Text Notes 800  900  0    100  ~ 20
 V2.3
-Wire Wire Line
-	1850 1750 2000 1750
 $Comp
 L power:GND #PWR0102
 U 1 1 5C045E18
@@ -175,7 +173,7 @@ U 1 1 5E125356
 P 900 2600
 F 0 "C1" H 950 2700 50  0000 L CNN
 F 1 "10uF" H 950 2500 50  0000 L CNN
-F 2 "Capacitors_Tantalum_SMD:CP_Tantalum_Case-A_EIA-3216-18_Hand" H 938 2450 50  0001 C CNN
+F 2 "Capacitor_Tantalum_SMD:CP_EIA-3216-18_Kemet-A_Pad1.58x1.35mm_HandSolder" H 938 2450 50  0001 C CNN
 F 3 "~" H 900 2600 50  0001 C CNN
 	1    900  2600
 	1    0    0    -1  
@@ -186,7 +184,7 @@ U 1 1 5E12575D
 P 1750 2600
 F 0 "C2" H 1800 2700 50  0000 L CNN
 F 1 "100uF" H 1800 2500 50  0000 L CNN
-F 2 "Capacitors_Tantalum_SMD:CP_Tantalum_Case-B_EIA-3528-21_Hand" H 1788 2450 50  0001 C CNN
+F 2 "Capacitor_Tantalum_SMD:CP_EIA-3528-21_Kemet-B_Pad1.50x2.35mm_HandSolder" H 1788 2450 50  0001 C CNN
 F 3 "~" H 1750 2600 50  0001 C CNN
 	1    1750 2600
 	1    0    0    -1  
@@ -197,17 +195,11 @@ U 1 1 5E125DB2
 P 1350 2400
 F 0 "U2" H 1350 2642 50  0000 C CNN
 F 1 "AMS1117-3.3" H 1350 2551 50  0000 C CNN
-F 2 "TO_SOT_Packages_SMD:SOT-223-3_TabPin2" H 1350 2600 50  0001 C CNN
+F 2 "Package_TO_SOT_SMD:SOT-223-3_TabPin2" H 1350 2600 50  0001 C CNN
 F 3 "http://www.advanced-monolithic.com/pdf/ds1117.pdf" H 1450 2150 50  0001 C CNN
 	1    1350 2400
 	1    0    0    -1  
 $EndComp
-Text Label 1850 1750 0    50   ~ 0
-3V3
-Text Label 3100 1750 2    50   ~ 0
-5V
-Wire Wire Line
-	3000 1750 3100 1750
 $Comp
 L power:GND #PWR03
 U 1 1 5E1298A3
@@ -249,8 +241,6 @@ F 3 "" H 1350 2800 50  0000 C CNN
 $EndComp
 Wire Wire Line
 	1350 2700 1350 2800
-Text Label 700  2400 0    50   ~ 0
-5V
 Wire Wire Line
 	1900 1600 1950 1600
 Wire Wire Line
@@ -310,19 +300,12 @@ $EndComp
 Wire Wire Line
 	2300 2200 2300 2250
 Wire Wire Line
-	2500 2400 2650 2400
-Text Label 2650 2400 2    50   ~ 0
-3V3
-Wire Wire Line
 	1650 2400 1750 2400
 Connection ~ 1750 2400
 Wire Wire Line
 	900  2400 900  2450
 Wire Wire Line
 	900  2400 1050 2400
-Wire Wire Line
-	900  2400 700  2400
-Connection ~ 900  2400
 Wire Wire Line
 	1750 2400 2100 2400
 Wire Notes Line
@@ -334,5 +317,18 @@ Wire Notes Line
 Wire Notes Line
 	650  3000 650  2100
 Text Notes 650  2200 0    50   ~ 0
-Optional
+Optional Power
+Text GLabel 3000 1750 2    50   Input ~ 0
+5V
+Text GLabel 2000 1750 0    50   Input ~ 0
+3V3
+Text GLabel 2550 2400 2    50   Input ~ 0
+3V3
+Wire Wire Line
+	2500 2400 2550 2400
+Text GLabel 850  2400 0    50   Input ~ 0
+5V
+Wire Wire Line
+	850  2400 900  2400
+Connection ~ 900  2400
 $EndSCHEMATC
