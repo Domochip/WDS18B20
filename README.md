@@ -56,41 +56,9 @@ During First Boot, the ESP boot in Access Point Mode
 
 Connect to this network and then configure it.
 
-### Configuration
+### Tasmota Configuration
 
-WirelessDS18B20 offers you some webpages in order to configure it :
-
-- `Status` return you the current status of the module :
-
-![status screenshot](https://raw.github.com/Domochip/WirelessDS18B20/master/img/status.png)
-
-- `Config` allows you to change configuration :
-
-![config screenshot](https://raw.github.com/Domochip/WirelessDS18B20/master/img/config.png)
-
-- **ssid & password** : IDs of your Wifi Network
-- **hostname** : name of ESP on the network
-- **IP,GW,NetMask,DNS1&2** : Fixed IP configuration
-
-
-![config3 screenshot](https://raw.github.com/Domochip/WirelessDS18B20/master/img/config3.png)
-
-- **HA Type** : None (HTTP GET only) or MQTT
-- **SSL/TLS** : check if your MQTT server enforce SSL/TLS
-- **Hostname** : IP or DNS name of your MQTT server
-- **Upload Period** : Period in seconds betwwen each MQTT send
-- **MQTT Type** : describe the structure of the topic end
-- **Port** : MQTT Port
-- **Username/Password** : MQTT Username/Password (both are optionnal)
-- **Base Topic** : Prefix of the topic
-
-- `Firmware` allows you to flash a new firmware version :
-
-![firmware screenshot](https://raw.github.com/Domochip/WirelessDS18B20/master/img/firmware.png)
-
-- `Discover` allows you to find all DomoChip devices on your network :
-
-![discover screenshot](https://raw.github.com/Domochip/WirelessDS18B20/master/img/discover.png)
+TODO
 
 ## Use it
 
