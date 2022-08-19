@@ -1,6 +1,6 @@
 # WirelessDS18B20
 
-This project use an ESP8266 and some DS18B20 sensors on a 1-Wire bus to provide temperatures :
+This project use a D1 Mini (ESP8266) and some DS18B20 sensors on a 1-Wire bus to provide temperatures :
  - in JSON format (answer HTTP queries)
  - by publishing to an MQTT broker
 
@@ -100,41 +100,3 @@ Usage (answers are in JSON format):
 
 - `http://IP/getL` will return list of DS18B20 ROMCodes available on the 1-Wire bus number 0
 - `http://IP/getT?ROMCode=0A1B2C3D4E5F6071` will return simple JSON with temperature from the sensor
-
-### With Jeedom (HTTP GET Method)
-
-> Memento : Jeedom is an innovative home automation system that can be found at <http://jeedom.com>
-
-For this configuration you need the *Script* plugin installed from the market :
-
-![Script Icon](https://raw.github.com/Domochip/WirelessDS18B20/master/img/JeedomScriptIcon.png)
-
-Go to script plugin then add a new equipment:
-
-![Script Add](https://raw.github.com/Domochip/WirelessDS18B20/master/img/JeedomScriptAdd.png)
-
-Name it :
-
-![Script Name](https://raw.github.com/Domochip/WirelessDS18B20/master/img/JeedomScriptName.png)
-
-Set refresh time (every minutes in my case) :
-
-![Script Refresh](https://raw.github.com/Domochip/WirelessDS18B20/master/img/JeedomScriptRefresh.png)
-
-Then into command tab, add a script command :
-
-![Script Command](https://raw.github.com/Domochip/WirelessDS18B20/master/img/JeedomScriptAddCmd.png)
-
-Then set it up with :
-
-- command name : Temperature
-- script type : JSON
-- request : Temperature (JSON tag name)
-- URL : `http://**IP**/getT?ROMCode=**0A1B2C3D4E5F6071**`
-- Unit : °C
-
-![Script Command Config](https://raw.github.com/Domochip/WirelessDS18B20/master/img/JeedomScriptCmdConfig.png)
-
-Now you're done and should get something like this :
-
-![Script Command Result](https://raw.github.com/Domochip/WirelessDS18B20/master/img/JeedomScriptResult.png)
