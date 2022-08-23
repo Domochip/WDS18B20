@@ -1,20 +1,17 @@
 # WirelessDS18B20
 
-This project use a D1 Mini (ESP8266) and some DS18B20 sensors on a 1-Wire bus to provide temperatures :
- - in JSON format (answer HTTP queries)
- - by publishing to an MQTT broker
+This project allows you to build a wide DS18B20 sensors network over a house
+It uses : 
+ - a D1 Mini (ESP8266)
+ - some DS18B20 sensors
+ - a customized Tasmota firmware
 
-It is possible to get list of DS18B20 ROMcodes available on the bus or current temperature of a sensor by HTTP.
-All sensors temperatures are published regularly on MQTT topics.
-
-
-![getList](https://raw.github.com/Domochip/WirelessDS18B20/master/img/getL.jpg) ![getTemp](https://raw.github.com/Domochip/WirelessDS18B20/master/img/getT.jpg)
 
 ## Build your 1-Wire bus
 
 In order to get a wide 1-Wire bus (one that cover a house), Dallas provides some recommendations into their application note AN148.
 
-This project use the Improved Interface bellow that is able to support a 200m bus:
+This project use the Improved Interface bellow that is able to support a 200 meter long bus:
 
 ![Dallas AN148 ImprovedCPUBusInterface schema](https://raw.github.com/Domochip/WirelessDS18B20/master/img/AN148-ImprovedCPUBusInterface.jpg)
 
@@ -34,27 +31,40 @@ All files are inside schematic subfolder and has been designed with KiCad
 
 ![WirelessDS18B20 PCB](https://raw.github.com/Domochip/WirelessDS18B20/master/img/pcb.jpg)![WirelessDS18B20 PCB2](https://raw.github.com/Domochip/WirelessDS18B20/master/img/pcb2.jpg)
 
-### Code/Compile
-
-Source code can be compiled using VisualStudioCode/Platformio and flashed onto a D1 Mini
-
 ### Print your box
 
 Box project (Fusion 360) can be found into `box` folder
 
 ![WirelessDS18B20 Box](https://raw.github.com/Domochip/WirelessDS18B20/master/img/box.jpg)
 
+## Code/Compile/Flash
+
+A specific variation in the Tasmota code needs to be done before compilation.
+You'll find bellow steps to compile it yourself OR precompiled binaries are available in Releases
+
+### Prepare compilation environment
+
+You need to follow Tasmota guides to be ready for compilation : 
+https://tasmota.github.io/docs/Compile-your-build/
+
+### Code
+
+You need to edit `tasmota/tasmota_xsns_sensor/xsns_05_ds18x20.ino` file
+
+1. enable `#define DS18x20_USE_ID_AS_NAME` by removing the '//' 
+2. replace `#define DS18X20_MAX_SENSORS  8` by `#define DS18X20_MAX_SENSORS  16`
+3. replace all `digitalWrite(DS18X20Data.pin_out, HIGH);` by `digitalWrite(DS18X20Data.pin_out, newLOW);`
+4. replace all `digitalWrite(DS18X20Data.pin_out, LOW);` by `digitalWrite(DS18X20Data.pin_out, HIGH);`
+5. replace all `digitalWrite(DS18X20Data.pin_out, newLOW);` by `digitalWrite(DS18X20Data.pin_out, LOW);`
+6. save
+7. Compile Tasmota
+
+### Flash
+
+You will find all available tools to flash tasmota in the official documentation : 
+https://tasmota.github.io/docs/Getting-Started/#needed-software
+
 ## Run
-
-### First Boot
-
-During First Boot, the ESP boot in Access Point Mode
-
-- Network SSID : `WirelessDSXXXX`
-- Password : `PasswordDS`
-- ESP IP : `192.168.4.1`
-
-Connect to this network and then configure it.
 
 ### Tasmota Configuration
 
