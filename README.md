@@ -67,6 +67,8 @@ https://tasmota.github.io/docs/Getting-Started/#needed-software
 
 ## Run
 
+![WirelessDS18B20 tasmota](https://raw.github.com/Domochip/WirelessDS18B20/master/img/tasmota.jpg)
+
 ### Tasmota Configuration
 
 You need to apply this Template:  
@@ -74,6 +76,7 @@ You need to apply this Template:
 
 To change number of digit after the dot on reported temperatures:  
 `TempRes 2`
+
 To Enable arithmetic mean over teleperiod:  
 `SetOption126 1`
 
