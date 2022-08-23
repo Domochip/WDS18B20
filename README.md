@@ -67,8 +67,6 @@ https://tasmota.github.io/docs/Getting-Started/#needed-software
 
 ## Run
 
-![WirelessDS18B20 tasmota](https://raw.github.com/Domochip/WirelessDS18B20/master/img/tasmota.jpg)
-
 ### Tasmota Configuration
 
 You need to apply this Template:  
@@ -82,3 +80,7 @@ To Enable arithmetic mean over teleperiod:
 
 For more details, please refer to the Tasmota documentation:  
 https://tasmota.github.io/docs/DS18x20
+
+## And finally...
+
+![WirelessDS18B20 tasmota](https://raw.github.com/Domochip/WirelessDS18B20/master/img/tasmota.jpg)
