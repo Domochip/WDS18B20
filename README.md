@@ -40,7 +40,7 @@ Box project (Fusion 360) can be found into `box` folder
 ## Code/Compile/Flash
 
 A specific variation in the Tasmota code needs to be done before compilation.  
-You'll find bellow steps to compile it yourself OR precompiled binaries are available in Releases.
+**Compile it yourself** by following bellow steps **OR precompiled binaries are available in Releases**.
 
 ### Prepare compilation environment
 
@@ -79,12 +79,3 @@ To Enable arithmetic mean over teleperiod:
 
 For more details, please refer to the Tasmota documentation:  
 https://tasmota.github.io/docs/DS18x20
-
-## Use it
-
-### Basics
-
-Usage (answers are in JSON format):
-
-- `http://IP/getL` will return list of DS18B20 ROMCodes available on the 1-Wire bus number 0
-- `http://IP/getT?ROMCode=0A1B2C3D4E5F6071` will return simple JSON with temperature from the sensor
