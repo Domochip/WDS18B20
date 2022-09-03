@@ -1,4 +1,4 @@
-# WirelessDS18B20
+# WDS18B20
 
 This project allows you to build a wide DS18B20 sensors network **over a house**  
 It uses : 
@@ -13,29 +13,29 @@ In order to get a wide 1-Wire bus (one that cover a house), Dallas provides some
 
 This project use the Improved Interface bellow that is able to support a **200 meters long bus**:
 
-![Dallas AN148 ImprovedCPUBusInterface schema](https://raw.github.com/Domochip/WirelessDS18B20/master/img/AN148-ImprovedCPUBusInterface.jpg)
+![Dallas AN148 ImprovedCPUBusInterface schema](https://raw.github.com/Domochip/WDS18B20/master/img/AN148-ImprovedCPUBusInterface.jpg)
 
 This one requires a pin for reading the bus state and another one as output to drive the bus low : I named it the "Dual Pin OneWire"
 
 **Warning : If you build a large 1 Wire bus inside your house, keep in mind that some voltage may appear on this one by induction. You need to have a good knowledge about electricity and associated risks!!!**
 
-## Build your WirelessDS18B20
+## Build your WDS18B20
 
 All files are inside schematic subfolder and has been designed with KiCad
 
 ### Schematic
 
-![WirelessDS18B20 schematic](https://raw.github.com/Domochip/WirelessDS18B20/master/img/schematic.jpg)
+![WDS18B20 schematic](https://raw.github.com/Domochip/WDS18B20/master/img/schematic.jpg)
 
 ### PCB
 
-![WirelessDS18B20 PCB](https://raw.github.com/Domochip/WirelessDS18B20/master/img/pcb.jpg)![WirelessDS18B20 PCB2](https://raw.github.com/Domochip/WirelessDS18B20/master/img/pcb2.jpg)
+![WDS18B20 PCB](https://raw.github.com/Domochip/WDS18B20/master/img/pcb.jpg)![WDS18B20 PCB2](https://raw.github.com/Domochip/WDS18B20/master/img/pcb2.jpg)
 
 ### Print your box
 
 Box project (Fusion 360) can be found into `box` folder
 
-![WirelessDS18B20 Box](https://raw.github.com/Domochip/WirelessDS18B20/master/img/box.jpg)
+![WDS18B20 Box](https://raw.github.com/Domochip/WDS18B20/master/img/box.jpg)
 
 ## Code/Compile/Flash
 
@@ -83,4 +83,4 @@ https://tasmota.github.io/docs/DS18x20
 
 ## And finally...
 
-![WirelessDS18B20 tasmota](https://raw.github.com/Domochip/WirelessDS18B20/master/img/tasmota.jpg)
+![WDS18B20 tasmota](https://raw.github.com/Domochip/WDS18B20/master/img/tasmota.jpg)
