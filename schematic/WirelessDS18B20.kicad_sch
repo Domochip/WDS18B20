@@ -588,7 +588,7 @@
 				)
 			)
 		)
-		(symbol "Transistor_FET:MMBF170"
+		(symbol "Transistor_FET:2N7002"
 			(pin_names hide)
 			(exclude_from_sim no)
 			(in_bom yes)
@@ -602,7 +602,7 @@
 					(justify left)
 				)
 			)
-			(property "Value" "MMBF170"
+			(property "Value" "2N7002"
 				(at 5.08 0 0)
 				(effects
 					(font
@@ -622,7 +622,7 @@
 					(hide yes)
 				)
 			)
-			(property "Datasheet" "https://www.diodes.com/assets/Datasheets/ds30104.pdf"
+			(property "Datasheet" "https://www.onsemi.com/pub/Collateral/NDS7002A-D.PDF"
 				(at 5.08 -3.81 0)
 				(effects
 					(font
@@ -632,7 +632,7 @@
 					(hide yes)
 				)
 			)
-			(property "Description" "0.5A Id, 60V Vds, N-Channel MOSFET, SOT-23"
+			(property "Description" "0.115A Id, 60V Vds, N-Channel MOSFET, SOT-23"
 				(at 0 0 0)
 				(effects
 					(font
@@ -641,7 +641,7 @@
 					(hide yes)
 				)
 			)
-			(property "ki_keywords" "N-Channel MOSFET"
+			(property "ki_keywords" "N-Channel Switching MOSFET"
 				(at 0 0 0)
 				(effects
 					(font
@@ -659,7 +659,7 @@
 					(hide yes)
 				)
 			)
-			(symbol "MMBF170_0_1"
+			(symbol "2N7002_0_1"
 				(polyline
 					(pts
 						(xy 0.254 0) (xy -2.54 0)
@@ -826,7 +826,7 @@
 					)
 				)
 			)
-			(symbol "MMBF170_1_1"
+			(symbol "2N7002_1_1"
 				(pin input line
 					(at -5.08 0 0)
 					(length 2.54)
@@ -2027,7 +2027,7 @@
 		(at 20.32 34.29 180)
 		(unit 1)
 		(exclude_from_sim no)
-		(in_bom yes)
+		(in_bom no)
 		(on_board yes)
 		(dnp no)
 		(uuid "00000000-0000-0000-0000-000057a0b00f")
@@ -2268,6 +2268,15 @@
 				(hide yes)
 			)
 		)
+		(property "LCSC" "C17513"
+			(at 40.64 29.21 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "0dcf00bb-6efb-49c9-91d8-21466b1b351f")
 		)
@@ -2397,6 +2406,15 @@
 				(hide yes)
 			)
 		)
+		(property "LCSC" "C17520"
+			(at 44.45 40.64 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "2"
 			(uuid "660ce88e-2234-42f5-a2a7-c8436af8ed26")
 		)
@@ -2417,7 +2435,7 @@
 		(at 63.5 35.56 180)
 		(unit 1)
 		(exclude_from_sim no)
-		(in_bom yes)
+		(in_bom no)
 		(on_board yes)
 		(dnp no)
 		(uuid "00000000-0000-0000-0000-00005c04580b")
@@ -2638,6 +2656,15 @@
 				(hide yes)
 			)
 		)
+		(property "LCSC" "C119052"
+			(at 22.86 66.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "b79012eb-31bf-43bb-b65f-81d46df1ddd1")
 		)
@@ -2707,6 +2734,15 @@
 				(hide yes)
 			)
 		)
+		(property "LCSC" "C129289"
+			(at 44.45 66.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "2"
 			(uuid "60ef6835-874b-4d02-bede-2ab25297d6f9")
 		)
@@ -2766,6 +2802,15 @@
 			)
 		)
 		(property "Description" ""
+			(at 34.29 60.96 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C6186"
 			(at 34.29 60.96 0)
 			(effects
 				(font
@@ -3175,82 +3220,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Transistor_FET:MMBF170")
-		(at 34.29 40.64 0)
-		(mirror y)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "16c0be4b-2227-41a5-9f24-63b988aebc10")
-		(property "Reference" "Q1"
-			(at 38.354 42.418 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "MMBF170"
-			(at 41.148 44.958 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Package_TO_SOT_SMD:SOT-23_Handsoldering"
-			(at 29.21 42.545 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-					(italic yes)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "https://www.diodes.com/assets/Datasheets/ds30104.pdf"
-			(at 29.21 44.45 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Description" "0.5A Id, 60V Vds, N-Channel MOSFET, SOT-23"
-			(at 34.29 40.64 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "3ce8b63f-b597-42be-bd19-32baebd098c2")
-		)
-		(pin "3"
-			(uuid "36185e56-c5d7-4197-bbb2-caa70ab36576")
-		)
-		(pin "2"
-			(uuid "2ce25f84-fa09-4073-bcf6-e098be994626")
-		)
-		(instances
-			(project ""
-				(path "/5f7cbbe3-ef5c-49a8-8769-c89d21be606b"
-					(reference "Q1")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "power:PWR_FLAG")
 		(at 96.52 38.1 270)
 		(unit 1)
@@ -3442,6 +3411,91 @@
 			(project "WirelessDS18B20"
 				(path "/5f7cbbe3-ef5c-49a8-8769-c89d21be606b"
 					(reference "#FLG02")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Transistor_FET:2N7002")
+		(at 34.29 40.64 0)
+		(mirror y)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "87eee4be-94a2-4bc0-8739-dc13bfe945de")
+		(property "Reference" "Q1"
+			(at 38.1 42.672 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "2N7002"
+			(at 39.878 44.958 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-23_Handsoldering"
+			(at 29.21 42.545 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+					(italic yes)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://www.onsemi.com/pub/Collateral/NDS7002A-D.PDF"
+			(at 29.21 44.45 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Description" "0.115A Id, 60V Vds, N-Channel MOSFET, SOT-23"
+			(at 34.29 40.64 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C8545"
+			(at 34.29 40.64 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "183a51a8-58b2-4f51-b75f-b9e7121df439")
+		)
+		(pin "2"
+			(uuid "5930976b-1974-44e9-95d4-8963f5f7c20c")
+		)
+		(pin "3"
+			(uuid "68dfd0d3-42ae-4e27-85ba-cf1efe9a9c4a")
+		)
+		(instances
+			(project ""
+				(path "/5f7cbbe3-ef5c-49a8-8769-c89d21be606b"
+					(reference "Q1")
 					(unit 1)
 				)
 			)
