@@ -157,7 +157,7 @@
 				(justify mirror)
 			)
 		)
-		(property "LCSC" "C119052"
+		(property "LCSC" "C7171"
 			(at 0 0 90)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -404,7 +404,7 @@
 				(justify mirror)
 			)
 		)
-		(property "LCSC" "C129289"
+		(property "LCSC" "C16133"
 			(at 0 0 180)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -1831,7 +1831,7 @@
 			(uuid "70c60139-130d-4713-a30e-f57204b9c58c")
 		)
 		(fp_text user "${REFERENCE}"
-			(at 0 0 360)
+			(at 0 0 0)
 			(layer "F.Fab")
 			(uuid "82da3de3-2b19-4f70-b351-db660472ac55")
 			(effects
