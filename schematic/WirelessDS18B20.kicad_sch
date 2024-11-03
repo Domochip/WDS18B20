@@ -1989,7 +1989,7 @@
 		)
 		(uuid "ff33b509-ada7-4c10-a45f-bdca34776b0e")
 	)
-	(text "V3.0"
+	(text "V3.1"
 		(exclude_from_sim no)
 		(at 16.002 19.304 0)
 		(effects
