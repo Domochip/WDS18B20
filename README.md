@@ -21,7 +21,7 @@ This one requires a pin for reading the bus state and another one as output to d
 
 ## Build your WDS18B20
 
-All files are inside schematic subfolder and has been designed with KiCad
+All files are inside `schematic` subfolder and has been designed with KiCad
 
 ### Schematic
 
