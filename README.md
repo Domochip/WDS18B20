@@ -1,11 +1,11 @@
 # WDS18B20
 
 This project allows you to build a wide DS18B20 sensors network **over a house**  
-It uses : 
- - a D1 Mini (ESP8266)
- - some DS18B20 sensors
- - a customized Tasmota firmware
+It uses :  
 
+- a D1 Mini (ESP8266)
+- some DS18B20 sensors
+- a customized Tasmota firmware
 
 ## Build your 1-Wire bus
 
@@ -45,13 +45,13 @@ A specific variation in the Tasmota code needs to be done before compilation.
 ### Prepare compilation environment
 
 You need to follow Tasmota guides to be ready for compilation:  
-https://tasmota.github.io/docs/Compile-your-build/
+<https://tasmota.github.io/docs/Compile-your-build/>
 
 ### Code
 
 You need to edit `tasmota/tasmota_xsns_sensor/xsns_05_ds18x20.ino` file
 
-1. enable `#define DS18x20_USE_ID_AS_NAME` by removing the '//' 
+1. enable `#define DS18x20_USE_ID_AS_NAME` by removing the '//'
 2. replace `#define DS18X20_MAX_SENSORS  8` by `#define DS18X20_MAX_SENSORS  16`
 3. For PCB 3.0 and lower
    1. replace all `digitalWrite(DS18X20Data.pin_out, HIGH);` by `digitalWrite(DS18X20Data.pin_out, newLOW);`
@@ -64,7 +64,7 @@ You need to edit `tasmota/tasmota_xsns_sensor/xsns_05_ds18x20.ino` file
 ### Flash
 
 You will find all available tools to flash tasmota in the official documentation:  
-https://tasmota.github.io/docs/Getting-Started/#needed-software
+<https://tasmota.github.io/docs/Getting-Started/#needed-software>
 
 ## Run
 
@@ -80,8 +80,8 @@ To Enable arithmetic mean over teleperiod:
 `SetOption126 1`
 
 For more details, please refer to the Tasmota documentation:  
-https://tasmota.github.io/docs/DS18x20
+<https://tasmota.github.io/docs/DS18x20>
 
-## And finally...
+## And finally
 
 ![WDS18B20 tasmota](img/tasmota.jpg)
