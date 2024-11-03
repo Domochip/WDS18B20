@@ -53,12 +53,13 @@ You need to edit `tasmota/tasmota_xsns_sensor/xsns_05_ds18x20.ino` file
 
 1. enable `#define DS18x20_USE_ID_AS_NAME` by removing the '//' 
 2. replace `#define DS18X20_MAX_SENSORS  8` by `#define DS18X20_MAX_SENSORS  16`
-3. replace all `digitalWrite(DS18X20Data.pin_out, HIGH);` by `digitalWrite(DS18X20Data.pin_out, newLOW);`
-4. replace all `digitalWrite(DS18X20Data.pin_out, LOW);` by `digitalWrite(DS18X20Data.pin_out, HIGH);`
-5. replace all `digitalWrite(DS18X20Data.pin_out, newLOW);` by `digitalWrite(DS18X20Data.pin_out, LOW);`
-6. save
-7. Compile Tasmota
-8. Rename resulting tasmota.bin to tasmota-WDS18B20-12.1.0.bin
+3. For PCB 3.0 and lower
+   1. replace all `digitalWrite(DS18X20Data.pin_out, HIGH);` by `digitalWrite(DS18X20Data.pin_out, newLOW);`
+   2. replace all `digitalWrite(DS18X20Data.pin_out, LOW);` by `digitalWrite(DS18X20Data.pin_out, HIGH);`
+   3. replace all `digitalWrite(DS18X20Data.pin_out, newLOW);` by `digitalWrite(DS18X20Data.pin_out, LOW);`
+4. save
+5. Compile Tasmota
+6. Rename resulting tasmota.bin to tasmota-WDS18B20-12.1.0.bin
 
 ### Flash
 
