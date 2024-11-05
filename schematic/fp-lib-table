@@ -1,4 +1,4 @@
 (fp_lib_table
-  (lib (name wemos_d1_mini)(type KiCad)(uri ${KIPRJMOD}/lib/wemos_d1_mini.pretty)(options "")(descr ""))
-  (lib (name Jumper)(type KiCad)(uri ${KIPRJMOD}/lib/Jumper.pretty)(options "")(descr ""))
+  (version 7)
+  (lib (name "wemos_d1_mini")(type "KiCad")(uri "${KIPRJMOD}/lib/wemos_d1_mini.pretty")(options "")(descr ""))
 )
