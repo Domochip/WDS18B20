@@ -453,7 +453,7 @@
     "pinned_symbol_libs": []
   },
   "meta": {
-    "filename": "WirelessDS18B20.kicad_pro",
+    "filename": "WDS18B20.kicad_pro",
     "version": 1
   },
   "net_settings": {
@@ -520,7 +520,7 @@
     "last_paths": {
       "gencad": "",
       "idf": "",
-      "netlist": "WirelessDS18B20.net",
+      "netlist": "WDS18B20.net",
       "plot": "WirelessDS18B20-gerber/",
       "pos_files": "",
       "specctra_dsn": "",
