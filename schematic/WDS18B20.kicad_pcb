@@ -67,7 +67,7 @@
 			(mirror no)
 			(drillshape 0)
 			(scaleselection 1)
-			(outputdirectory "WirelessDS18B20-gerber/")
+			(outputdirectory "WDS18B20-gerber/")
 		)
 	)
 	(net 0 "")
@@ -170,10 +170,23 @@
 				)
 			)
 		)
+		(property "JlcRotOffset" "180"
+			(at 0 0 180)
+			(unlocked yes)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "30e4d437-c588-46b0-90f7-6b8e02bbf1c0")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
 		(property ki_fp_filters "CP_*")
 		(path "/00000000-0000-0000-0000-00005e125356")
 		(sheetname "Root")
-		(sheetfile "WirelessDS18B20.kicad_sch")
+		(sheetfile "WDS18B20.kicad_sch")
 		(attr smd)
 		(fp_line
 			(start 1.6 0.935)
@@ -417,10 +430,23 @@
 				)
 			)
 		)
+		(property "JlcRotOffset" "180"
+			(at 0 0 180)
+			(unlocked yes)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "51cc7def-52db-4903-a3ef-eccfbb33aeff")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
 		(property ki_fp_filters "CP_*")
 		(path "/00000000-0000-0000-0000-00005e12575d")
 		(sheetname "Root")
-		(sheetfile "WirelessDS18B20.kicad_sch")
+		(sheetfile "WDS18B20.kicad_sch")
 		(attr smd)
 		(fp_line
 			(start 1.75 1.51)
@@ -667,7 +693,7 @@
 		(property ki_fp_filters "R_*")
 		(path "/00000000-0000-0000-0000-000057a0b1bf")
 		(sheetname "Root")
-		(sheetfile "WirelessDS18B20.kicad_sch")
+		(sheetfile "WDS18B20.kicad_sch")
 		(attr smd)
 		(fp_line
 			(start -0.227064 0.735)
@@ -894,7 +920,7 @@
 		(property ki_fp_filters "R_*")
 		(path "/00000000-0000-0000-0000-000057a0bcaa")
 		(sheetname "Root")
-		(sheetfile "WirelessDS18B20.kicad_sch")
+		(sheetfile "WDS18B20.kicad_sch")
 		(attr smd)
 		(fp_line
 			(start -0.227064 0.735)
@@ -1121,7 +1147,7 @@
 		(property ki_fp_filters "SOT?223*TabPin2*")
 		(path "/00000000-0000-0000-0000-00005e125db2")
 		(sheetname "Root")
-		(sheetfile "WirelessDS18B20.kicad_sch")
+		(sheetfile "WDS18B20.kicad_sch")
 		(attr smd)
 		(fp_line
 			(start -1.85 -3.41)
@@ -1411,7 +1437,7 @@
 		(property ki_fp_filters "SOT?23*")
 		(path "/87eee4be-94a2-4bc0-8739-dc13bfe945de")
 		(sheetname "Root")
-		(sheetfile "WirelessDS18B20.kicad_sch")
+		(sheetfile "WDS18B20.kicad_sch")
 		(attr smd)
 		(fp_line
 			(start 0.76 1.58)
@@ -1701,7 +1727,7 @@
 		(property ki_fp_filters "SOT?23*")
 		(path "/f56037e4-12e3-4f7d-bcfe-a3291163457f")
 		(sheetname "Root")
-		(sheetfile "WirelessDS18B20.kicad_sch")
+		(sheetfile "WDS18B20.kicad_sch")
 		(attr smd)
 		(fp_line
 			(start 0.76 1.58)
@@ -1988,10 +2014,23 @@
 				)
 			)
 		)
+		(property "JlcRotOffset" "180"
+			(at 0 0 0)
+			(unlocked yes)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "edca6503-9d49-4ba6-9c31-43d490503a9d")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
 		(property ki_fp_filters "TerminalBlock*:*")
 		(path "/3b184bba-06d2-4619-99a9-8b6f91c525ef")
 		(sheetname "Root")
-		(sheetfile "WirelessDS18B20.kicad_sch")
+		(sheetfile "WDS18B20.kicad_sch")
 		(attr through_hole)
 		(fp_line
 			(start -2.54 -3.81)
@@ -2276,7 +2315,7 @@
 		)
 		(path "/1aec9224-fd2d-42fe-95cf-12488f2c3956")
 		(sheetname "Root")
-		(sheetfile "WirelessDS18B20.kicad_sch")
+		(sheetfile "WDS18B20.kicad_sch")
 		(attr through_hole)
 		(fp_line
 			(start 1.15 -1.27)
@@ -2627,7 +2666,7 @@
 		)
 		(path "/227fbfc3-9ae3-456b-8175-102604e5cb53")
 		(sheetname "Root")
-		(sheetfile "WirelessDS18B20.kicad_sch")
+		(sheetfile "WDS18B20.kicad_sch")
 		(attr through_hole)
 		(fp_line
 			(start 1.33 -1.27)

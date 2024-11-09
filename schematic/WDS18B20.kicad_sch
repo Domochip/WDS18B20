@@ -2682,6 +2682,15 @@
 				(hide yes)
 			)
 		)
+		(property "JlcRotOffset" "180"
+			(at 22.86 68.58 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "b79012eb-31bf-43bb-b65f-81d46df1ddd1")
 		)
@@ -2752,6 +2761,15 @@
 			)
 		)
 		(property "LCSC" "C16133"
+			(at 44.45 68.58 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JlcRotOffset" "180"
 			(at 44.45 68.58 0)
 			(effects
 				(font
@@ -3552,6 +3570,15 @@
 			)
 		)
 		(property "LCSC" "C474882"
+			(at 85.09 34.29 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JlcRotOffset" "180"
 			(at 85.09 34.29 0)
 			(effects
 				(font
