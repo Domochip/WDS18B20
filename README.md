@@ -33,9 +33,9 @@ All files are inside `schematic` subfolder and has been designed with KiCad
 
 ### Print your box
 
-Box project (Fusion 360) can be found into `box` folder
+Box project (Fusion 360) and STL files can be found into `box` folder
 
-![WDS18B20 Box](img/box.jpg)
+![WDS18B20 Box](img/box.png)
 
 ## Code/Compile/Flash
 
